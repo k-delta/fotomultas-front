@@ -10,6 +10,63 @@ import TypeChart from '../components/dashboard/TypeChart';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 
+const calculateMonthlyChange = (fines: any[], filterFn = (f: any) => true) => {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const currentYear = now.getFullYear();
+  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+  const thisMonthFines = fines.filter(fine => {
+    const fineDate = new Date(fine.timestamp);
+    return fineDate.getMonth() === currentMonth && 
+           fineDate.getFullYear() === currentYear && 
+           filterFn(fine);
+  });
+
+  const lastMonthFines = fines.filter(fine => {
+    const fineDate = new Date(fine.timestamp);
+    return fineDate.getMonth() === lastMonth && 
+           fineDate.getFullYear() === lastMonthYear && 
+           filterFn(fine);
+  });
+
+  const currentValue = thisMonthFines.length;
+  const previousValue = lastMonthFines.length;
+
+  if (previousValue === 0) return 0;
+  return ((currentValue - previousValue) / previousValue) * 100;
+};
+
+const calculateMonthlyAmountChange = (fines: any[]) => {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const currentYear = now.getFullYear();
+  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+  const thisMonthAmount = fines
+    .filter(fine => {
+      const fineDate = new Date(fine.timestamp);
+      return fineDate.getMonth() === currentMonth && 
+             fineDate.getFullYear() === currentYear && 
+             fine.status === 'paid';
+    })
+    .reduce((sum, fine) => sum + fine.cost, 0);
+
+  const lastMonthAmount = fines
+    .filter(fine => {
+      const fineDate = new Date(fine.timestamp);
+      return fineDate.getMonth() === lastMonth && 
+             fineDate.getFullYear() === lastMonthYear && 
+             fine.status === 'paid';
+    })
+    .reduce((sum, fine) => sum + fine.cost, 0);
+
+  if (lastMonthAmount === 0) return 0;
+  return ((thisMonthAmount - lastMonthAmount) / lastMonthAmount) * 100;
+};
+
 const DashboardPage: React.FC = () => {
   const { getFines, getActivities, fines, activities, isLoading } = useFineStore();
   const [metrics, setMetrics] = useState<Metric[]>([]);
@@ -28,9 +85,8 @@ const DashboardPage: React.FC = () => {
       const totalFines = fines.length;
       const pendingFines = fines.filter(f => f.status === 'pending').length;
       const paidFines = fines.filter(f => f.status === 'paid').length;
-      const appealedFines = fines.filter(f => f.status === 'appealed').length;
-
-      const totalAmount = fines.reduce((sum, fine) => sum + fine.cost, 0);
+      // const appealedFines = fines.filter(f => f.status === 'appealed').length;
+      // const totalAmount = fines.reduce((sum, fine) => sum + fine.cost, 0);
       const collectedAmount = fines
         .filter(f => f.status === 'paid')
         .reduce((sum, fine) => sum + fine.cost, 0);
@@ -39,22 +95,22 @@ const DashboardPage: React.FC = () => {
         {
           label: 'Total multas',
           value: totalFines,
-          change: 12.5, // Simulated change percentages
+          change: calculateMonthlyChange(fines),
         },
         {
           label: 'Multas pendientes',
           value: pendingFines,
-          change: -4.3,
+          change: calculateMonthlyChange(fines, f => f.status === 'pending'),
         },
         {
           label: 'Multas pagadas',
           value: paidFines,
-          change: 18.2,
+          change: calculateMonthlyChange(fines, f => f.status === 'paid'),
         },
         {
           label: 'Monto recaudado',
           value: Math.round(collectedAmount / 1000), // In thousands
-          change: 15.8,
+          change: calculateMonthlyAmountChange(fines),
         },
       ]);
     }

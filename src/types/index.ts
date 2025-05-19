@@ -32,13 +32,19 @@ export type FineStatus =
   | 'rejected'
   | 'verified';
 
+export type Location = {
+  latitude: number;
+  longitude: number;
+  address?: string; // Dirección en texto como referencia opcional
+};
+
 export type Fine = {
   id: string;
   transactionId: string; // Blockchain transaction ID
   ipfsCid: string; // IPFS Content ID for evidence
   plate: string;
   timestamp: string;
-  location: string;
+  location: Location;
   city: string;
   fineType: FineType;
   status: FineStatus;

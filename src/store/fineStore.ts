@@ -1,12 +1,24 @@
 import { create } from 'zustand';
-import { Fine, FineWithHistory, FineType, FineStatus, Activity } from '../types';
+import { Fine, FineWithHistory, FineType, FineStatus, Activity } from '../types/index';
 import { generateTransactionId, generateIpfsCid, addStatusChange } from '../utils/fineUtils';
+
+const cityCoordinates = {
+  'Bogotá': { lat: 4.6097, lng: -74.0817 },
+  'Medellín': { lat: 6.2442, lng: -75.5812 },
+  'Cali': { lat: 3.4516, lng: -76.5320 },
+  'Barranquilla': { lat: 10.9639, lng: -74.7964 },
+  'Cartagena': { lat: 10.3910, lng: -75.4794 }
+};
+
+const generateRandomCoordinate = (base: number, variance: number = 0.02): number => {
+  return base + (Math.random() - 0.5) * variance;
+};
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
   const fineTypes: FineType[] = ['speeding', 'red_light', 'illegal_parking', 'no_documents', 'driving_under_influence', 'other'];
   const statuses: FineStatus[] = ['pending', 'paid', 'appealed', 'rejected', 'verified'];
-  const cities = ['Bogotá', 'Medellín', 'Cali', 'Barranquilla', 'Cartagena'];
+  const cities = Object.keys(cityCoordinates);
   
   return Array.from({ length: 50 }, (_, i) => {
     const createdDate = new Date();
@@ -14,6 +26,8 @@ const generateMockFines = (): FineWithHistory[] => {
     
     const transactionId = generateTransactionId();
     const initialStatus: FineStatus = Math.random() > 0.5 ? 'pending' : statuses[Math.floor(Math.random() * statuses.length)];
+    const city = cities[Math.floor(Math.random() * cities.length)];
+    const cityCoords = cityCoordinates[city];
     
     const fine: FineWithHistory = {
       id: `F${1000 + i}`,
@@ -21,8 +35,12 @@ const generateMockFines = (): FineWithHistory[] => {
       ipfsCid: generateIpfsCid(),
       plate: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 1000)}`,
       timestamp: createdDate.toISOString(),
-      location: `${['Calle', 'Carrera', 'Avenida'][Math.floor(Math.random() * 3)]} ${Math.floor(Math.random() * 100) + 1} #${Math.floor(Math.random() * 100) + 1}-${Math.floor(Math.random() * 100) + 1}`,
-      city: cities[Math.floor(Math.random() * cities.length)],
+      location: {
+        latitude: generateRandomCoordinate(cityCoords.lat),
+        longitude: generateRandomCoordinate(cityCoords.lng),
+        address: `${['Calle', 'Carrera', 'Avenida'][Math.floor(Math.random() * 3)]} ${Math.floor(Math.random() * 100) + 1} #${Math.floor(Math.random() * 100) + 1}-${Math.floor(Math.random() * 100) + 1}`
+      },
+      city,
       fineType: fineTypes[Math.floor(Math.random() * fineTypes.length)],
       status: initialStatus,
       cost: Math.floor(Math.random() * 500000) + 100000,
