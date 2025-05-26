@@ -1,25 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { useFineStore } from '../store/fineStore';
 import Card from '../components/ui/Card';
 import FineForm from '../components/fines/FineForm';
 
 const FineCreatePage: React.FC = () => {
-  const { createFine, isLoading } = useFineStore();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async (formData: any) => {
     try {
-      const newFine = await createFine({
-        ...formData,
-        timestamp: new Date(formData.timestamp).toISOString(),
+      setIsLoading(true);
+      // Send Fine to Backend
+      const form = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (key === 'evidence') {
+          if (formData[key]) {
+            form.append('evidence', formData[key]);
+          }
+        } else {
+          form.append(key, formData[key]);
+        }
       });
+
+      const response = await fetch(`/api/fines`, {
+        method: 'POST',
+        body: form
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear la multa');
+      }
+
+      const newFine = await response.json();
+      console.log(newFine)
       
       // Redirect to the new fine details page
-      navigate(`/fines/${newFine.id}`);
+      navigate(`/fines/${newFine.fineId}`);
     } catch (error) {
       console.error('Error creating fine:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
   

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Fine, FineWithHistory, FineType, FineStatus, Activity } from '../types/index';
-import { generateTransactionId, generateIpfsCid, addStatusChange } from '../utils/fineUtils';
+import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal } from '../utils/fineUtils';
 
 const cityCoordinates = {
   'Bogotá': { lat: 4.6097, lng: -74.0817 },
@@ -119,7 +119,7 @@ const generateRecentActivities = (fines: FineWithHistory[]): Activity[] => {
 const mockFines = generateMockFines();
 const mockActivities = generateRecentActivities(mockFines);
 
-type FinesState = {
+interface FineStore {
   fines: FineWithHistory[];
   selectedFine: FineWithHistory | null;
   activities: Activity[];
@@ -127,14 +127,14 @@ type FinesState = {
   error: string | null;
   
   getFines: () => Promise<FineWithHistory[]>;
-  getFineById: (id: string) => Promise<FineWithHistory | null>;
-  createFine: (fineData: Omit<Fine, 'id' | 'transactionId' | 'ipfsCid' | 'status'>) => Promise<FineWithHistory>;
-  updateFineStatus: (id: string, status: FineStatus, reason?: string) => Promise<FineWithHistory | null>;
+  getFineById: (id: string) => Promise<void>;
+  createFine: (formData: FormData) => Promise<FineWithHistory>;
+  updateFineStatus: (id: string, status: FineStateInternal, reason?: string) => Promise<void>;
   getActivities: () => Promise<Activity[]>;
   verifyFineIntegrity: (id: string) => Promise<{ blockchain: boolean; ipfs: boolean }>;
-};
+}
 
-export const useFineStore = create<FinesState>((set, get) => ({
+export const useFineStore = create<FineStore>((set, get) => ({
   fines: mockFines,
   selectedFine: null,
   activities: mockActivities,
@@ -156,27 +156,45 @@ export const useFineStore = create<FinesState>((set, get) => ({
   },
   
   getFineById: async (id: string) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true });
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const fine = get().fines.find(f => f.id === id) || null;
-      set({ selectedFine: fine });
-      return fine;
-    } catch (error) {
-      set({ error: 'Error al cargar detalles de multa' });
-      return null;
-    } finally {
+      // Simular llamada a API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // TODO: Implementar llamada real a la API
       set({ isLoading: false });
+    } catch (error) {
+      set({ isLoading: false });
+      console.error('Error fetching fine:', error);
     }
   },
   
-  createFine: async (fineData) => {
+  createFine: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      // Simulate API request delay (blockchain registration)
+      // Here you would make an actual API call to your backend
+      // The backend would handle:
+      // 1. Upload the image to IPFS
+      // 2. Register the fine in the blockchain
+      // 3. Store the fine data in your database
+      
+      // For now, we'll simulate the API call
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Convert FormData to object for mock data
+      const fineData = {
+        plate: formData.get('plate') as string,
+        location: {
+          latitude: parseFloat(formData.get('location-latitude') as string),
+          longitude: parseFloat(formData.get('location-longitude') as string),
+          address: formData.get('location-address') as string
+        },
+        city: formData.get('city') as string,
+        fineType: formData.get('fineType') as FineType,
+        cost: parseInt(formData.get('cost') as string),
+        ownerId: formData.get('ownerId') as string,
+        ownerName: formData.get('ownerName') as string,
+        timestamp: new Date().toISOString()
+      };
       
       const transactionId = generateTransactionId();
       const ipfsCid = generateIpfsCid();
@@ -201,7 +219,7 @@ export const useFineStore = create<FinesState>((set, get) => ({
         type: 'fine_registered',
         fineId: newFine.id,
         plate: newFine.plate,
-        timestamp: newFine.timestamp,
+        timestamp: new Date().toISOString(),
         description: `Multa ${newFine.id} registrada para placa ${newFine.plate}`
       };
       
@@ -219,53 +237,12 @@ export const useFineStore = create<FinesState>((set, get) => ({
     }
   },
   
-  updateFineStatus: async (id: string, status: FineStatus, reason?: string) => {
-    set({ isLoading: true, error: null });
+  updateFineStatus: async (id: string, status: FineStateInternal, reason?: string) => {
     try {
-      // Simulate API request delay (blockchain transaction)
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const fines = get().fines;
-      const fineIndex = fines.findIndex(f => f.id === id);
-      
-      if (fineIndex === -1) {
-        throw new Error('Multa no encontrada');
-      }
-      
-      const updatedFine = addStatusChange(fines[fineIndex], status, reason);
-      
-      const newActivity: Activity = {
-        id: `A${Math.random().toString().substring(2, 10)}`,
-        type: status === 'paid' 
-          ? 'fine_paid' 
-          : (status === 'appealed' ? 'fine_appealed' : 'status_change'),
-        fineId: updatedFine.id,
-        plate: updatedFine.plate,
-        timestamp: new Date().toISOString(),
-        description: `Multa ${updatedFine.id} marcada como ${status === 'paid' 
-          ? 'pagada' 
-          : (status === 'appealed' 
-            ? 'apelada' 
-            : status === 'verified' 
-              ? 'verificada' 
-              : 'rechazada')}`
-      };
-      
-      const updatedFines = [...fines];
-      updatedFines[fineIndex] = updatedFine;
-      
-      set(state => ({ 
-        fines: updatedFines,
-        selectedFine: updatedFine,
-        activities: [newActivity, ...state.activities].slice(0, 10)
-      }));
-      
-      return updatedFine;
+      // TODO: Implementar llamada real a la API
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
-      set({ error: 'Error al actualizar estado de multa' });
-      return null;
-    } finally {
-      set({ isLoading: false });
+      console.error('Error updating fine status:', error);
     }
   },
   
@@ -284,31 +261,19 @@ export const useFineStore = create<FinesState>((set, get) => ({
   },
   
   verifyFineIntegrity: async (id: string) => {
-    set({ isLoading: true, error: null });
     try {
-      // Simulate API verification delay
+      // TODO: Implementar verificación real
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const fine = get().fines.find(f => f.id === id);
-      if (!fine) {
-        throw new Error('Multa no encontrada');
-      }
-      
-      // Simulation: 95% chance blockchain is valid, 90% chance IPFS is valid
-      const blockchainValid = Math.random() > 0.05;
-      const ipfsValid = Math.random() > 0.1;
-      
-      // If verification is successful, update the fine status
-      if (blockchainValid && ipfsValid && fine.status === 'pending') {
-        await get().updateFineStatus(id, 'verified');
-      }
-      
-      return { blockchain: blockchainValid, ipfs: ipfsValid };
+      return {
+        blockchain: true,
+        ipfs: true
+      };
     } catch (error) {
-      set({ error: 'Error al verificar integridad' });
-      return { blockchain: false, ipfs: false };
-    } finally {
-      set({ isLoading: false });
+      console.error('Error verifying fine integrity:', error);
+      return {
+        blockchain: false,
+        ipfs: false
+      };
     }
   }
 }));

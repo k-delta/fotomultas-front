@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileText, Filter, ChevronDown, ChevronUp } from 'lucide-react';
-import { FineWithHistory, FineStatus } from '../../types';
-import { formatCurrency, formatDate, getFineTypeLabel } from '../../utils/fineUtils';
+import { FineWithHistory } from '../../types';
+import { formatCurrency, formatDate, getFineTypeLabel, getFineStatusLabel, getFineStatusColor, FineStateInternal } from '../../utils/fineUtils';
 import StatusBadge from '../ui/StatusBadge';
 import SearchInput from '../ui/SearchInput';
 import Button from '../ui/Button';
@@ -20,7 +20,7 @@ const FineList: React.FC<FineListProps> = ({
   isLoading = false
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<FineStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<FineStateInternal | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [showFilters, setShowFilters] = useState(false);
@@ -46,9 +46,7 @@ const FineList: React.FC<FineListProps> = ({
         const query = searchQuery.toLowerCase();
         return (
           fine.id.toLowerCase().includes(query) ||
-          fine.plate.toLowerCase().includes(query) ||
-          fine.ownerName.toLowerCase().includes(query) ||
-          fine.city.toLowerCase().includes(query)
+          fine.plate.toLowerCase().includes(query)
         );
       }
       
@@ -108,7 +106,7 @@ const FineList: React.FC<FineListProps> = ({
       <div className="p-4 border-b border-gray-200 space-y-3">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <SearchInput
-            placeholder="Buscar por ID, placa o propietario..."
+            placeholder="Buscar por ID o placa..."
             onSearch={handleSearch}
             className="w-full sm:w-80"
           />
@@ -132,39 +130,39 @@ const FineList: React.FC<FineListProps> = ({
               Todos
             </Button>
             <Button 
-              variant={statusFilter === 'pending' ? 'primary' : 'outline'} 
+              variant={statusFilter === FineStateInternal.PENDING ? 'primary' : 'outline'} 
               size="xs"
-              onClick={() => setStatusFilter('pending')}
+              onClick={() => setStatusFilter(FineStateInternal.PENDING)}
             >
               Pendientes
             </Button>
             <Button 
-              variant={statusFilter === 'paid' ? 'primary' : 'outline'} 
+              variant={statusFilter === FineStateInternal.PAID ? 'primary' : 'outline'} 
               size="xs"
-              onClick={() => setStatusFilter('paid')}
+              onClick={() => setStatusFilter(FineStateInternal.PAID)}
             >
               Pagadas
             </Button>
             <Button 
-              variant={statusFilter === 'appealed' ? 'primary' : 'outline'} 
+              variant={statusFilter === FineStateInternal.APPEALED ? 'primary' : 'outline'} 
               size="xs"
-              onClick={() => setStatusFilter('appealed')}
+              onClick={() => setStatusFilter(FineStateInternal.APPEALED)}
             >
               Apeladas
             </Button>
             <Button 
-              variant={statusFilter === 'verified' ? 'primary' : 'outline'} 
+              variant={statusFilter === FineStateInternal.RESOLVED_APPEAL ? 'primary' : 'outline'} 
               size="xs"
-              onClick={() => setStatusFilter('verified')}
+              onClick={() => setStatusFilter(FineStateInternal.RESOLVED_APPEAL)}
             >
-              Verificadas
+              Resueltas
             </Button>
             <Button 
-              variant={statusFilter === 'rejected' ? 'primary' : 'outline'} 
+              variant={statusFilter === FineStateInternal.CANCELLED ? 'primary' : 'outline'} 
               size="xs"
-              onClick={() => setStatusFilter('rejected')}
+              onClick={() => setStatusFilter(FineStateInternal.CANCELLED)}
             >
-              Rechazadas
+              Canceladas
             </Button>
           </div>
         )}
@@ -184,72 +182,58 @@ const FineList: React.FC<FineListProps> = ({
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID / Placa
+                  ID
                 </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => toggleSort('timestamp')}
-                >
-                  <div className="flex items-center">
-                    Fecha {renderSortIcon('timestamp')}
-                  </div>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Placa
+                </th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fecha
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tipo
                 </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => toggleSort('plate')}
-                >
-                  <div className="flex items-center">
-                    Propietario {renderSortIcon('plate')}
-                  </div>
-                </th>
-                <th 
-                  scope="col" 
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => toggleSort('cost')}
-                >
-                  <div className="flex items-center">
-                    Monto {renderSortIcon('cost')}
-                  </div>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Monto
                 </th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Acciones
+                <th scope="col" className="relative px-6 py-3">
+                  <span className="sr-only">Acciones</span>
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedFines.map((fine) => (
                 <tr key={fine.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{fine.id}</div>
-                    <div className="text-sm text-gray-500">{fine.plate}</div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {fine.id}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {fine.plate}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(fine.timestamp)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {getFineTypeLabel(fine.fineType)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatCurrency(fine.cost)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(fine.timestamp)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{getFineTypeLabel(fine.fineType)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{fine.ownerName}</div>
-                    <div className="text-sm text-gray-500">{fine.city}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(fine.cost)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={fine.status} />
+                    <StatusBadge 
+                      status={getFineStatusLabel(fine.status)} 
+                      color={getFineStatusColor(fine.status) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
+                    />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link to={`/fines/${fine.id}`} className="text-blue-600 hover:text-blue-900 mr-3">
-                      Ver
+                    <Link
+                      to={`/fines/${fine.id}`}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      Ver detalles
                     </Link>
                   </td>
                 </tr>

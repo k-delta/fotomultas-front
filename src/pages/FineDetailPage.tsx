@@ -10,7 +10,7 @@ import {
   Image 
 } from 'lucide-react';
 import { useFineStore } from '../store/fineStore';
-import { formatCurrency, formatDate, getFineTypeLabel } from '../utils/fineUtils';
+import { formatCurrency, formatDate, getFineTypeLabel, getFineStatusLabel, getFineStatusColor, FineStateInternal } from '../utils/fineUtils';
 import Button from '../components/ui/Button';
 import StatusBadge from '../components/ui/StatusBadge';
 import Card from '../components/ui/Card';
@@ -50,18 +50,18 @@ const FineDetailPage: React.FC = () => {
     }
   };
   
-  const handleUpdateStatus = async (status: 'paid' | 'appealed' | 'rejected') => {
+  const handleUpdateStatus = async (newStatus: FineStateInternal) => {
     if (!id) return;
     
-    const reason = status === 'appealed' 
+    const reason = newStatus === FineStateInternal.APPEALED 
       ? prompt('Por favor, ingrese el motivo de la apelación:') 
       : undefined;
     
-    if (status === 'appealed' && !reason) {
+    if (newStatus === FineStateInternal.APPEALED && !reason) {
       return; // User cancelled
     }
     
-    await updateFineStatus(id, status, reason);
+    await updateFineStatus(id, newStatus, reason);
   };
   
   if (isLoading || !selectedFine) {
@@ -72,7 +72,8 @@ const FineDetailPage: React.FC = () => {
     );
   }
   
-  const showActionButtons = selectedFine.status === 'pending' || selectedFine.status === 'appealed';
+  const showActionButtons = selectedFine.status === FineStateInternal.PENDING || 
+                          selectedFine.status === FineStateInternal.APPEALED;
   
   return (
     <div className="space-y-6">
@@ -84,7 +85,12 @@ const FineDetailPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">
             Detalles de multa {selectedFine.id}
           </h1>
-          <StatusBadge status={selectedFine.status} />
+
+          console.log(selectedFine)
+          <StatusBadge 
+            status={getFineStatusLabel(selectedFine.status)} 
+            color={getFineStatusColor(selectedFine.status)} 
+          />
         </div>
       </div>
       
@@ -126,23 +132,9 @@ const FineDetailPage: React.FC = () => {
                     <dd className="mt-1 text-sm text-gray-900">{selectedFine.location}</dd>
                   </div>
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Ciudad</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.city}</dd>
-                  </div>
-                  <div>
                     <dt className="text-sm font-medium text-gray-500">ID del propietario</dt>
                     <dd className="mt-1 text-sm text-gray-900">{selectedFine.ownerId}</dd>
                   </div>
-                  <div>
-                    <dt className="text-sm font-medium text-gray-500">Nombre del propietario</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.ownerName}</dd>
-                  </div>
-                  {selectedFine.idIoT && (
-                    <div>
-                      <dt className="text-sm font-medium text-gray-500">ID del dispositivo IoT</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{selectedFine.idIoT}</dd>
-                    </div>
-                  )}
                 </dl>
               </div>
             </div>
@@ -186,7 +178,10 @@ const FineDetailPage: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-500">Estado actual</span>
-                  <StatusBadge status={selectedFine.status} />
+                  <StatusBadge 
+                    status={getFineStatusLabel(selectedFine.status)} 
+                    color={getFineStatusColor(selectedFine.status)} 
+                  />
                 </div>
               </div>
             </div>
@@ -216,10 +211,10 @@ const FineDetailPage: React.FC = () => {
           {showActionButtons && (
             <Card title="Acciones">
               <div className="space-y-3">
-                {selectedFine.status === 'pending' && (
+                {selectedFine.status === FineStateInternal.PENDING && (
                   <>
                     <Button
-                      onClick={() => handleUpdateStatus('paid')}
+                      onClick={() => handleUpdateStatus(FineStateInternal.PAID)}
                       variant="success"
                       className="w-full"
                       icon={<CreditCard size={16} />}
@@ -227,7 +222,7 @@ const FineDetailPage: React.FC = () => {
                       Marcar como pagada
                     </Button>
                     <Button
-                      onClick={() => handleUpdateStatus('appealed')}
+                      onClick={() => handleUpdateStatus(FineStateInternal.APPEALED)}
                       variant="outline"
                       className="w-full"
                       icon={<FolderX size={16} />}
@@ -237,10 +232,10 @@ const FineDetailPage: React.FC = () => {
                   </>
                 )}
                 
-                {selectedFine.status === 'appealed' && (
+                {selectedFine.status === FineStateInternal.APPEALED && (
                   <>
                     <Button
-                      onClick={() => handleUpdateStatus('rejected')}
+                      onClick={() => handleUpdateStatus(FineStateInternal.CANCELLED)}
                       variant="danger"
                       className="w-full"
                       icon={<FolderX size={16} />}
@@ -248,7 +243,7 @@ const FineDetailPage: React.FC = () => {
                       Rechazar apelación
                     </Button>
                     <Button
-                      onClick={() => handleUpdateStatus('paid')}
+                      onClick={() => handleUpdateStatus(FineStateInternal.RESOLVED_APPEAL)}
                       variant="success"
                       className="w-full"
                       icon={<FileCheck size={16} />}

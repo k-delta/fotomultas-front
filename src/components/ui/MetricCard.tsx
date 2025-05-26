@@ -24,7 +24,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ metric, prefix = '', suffix = '
       <div className={`flex items-center mt-2 ${changeClass}`}>
         <IconComponent size={16} className="mr-1" />
         <span className="text-sm font-medium">
-          {isPositive ? '+' : ''}{metric.change}%
+          {isPositive ? '+' : ''}{metric.change.toFixed(1)}%
         </span>
         <span className="text-xs text-gray-500 ml-1">vs. mes anterior</span>
       </div>

@@ -1,5 +1,13 @@
 import { Fine, FineStatus, FineType, FineWithHistory, StatusChange } from '../types';
 
+export enum FineStateInternal {
+    PENDING = 0,
+    PAID = 1,
+    APPEALED = 2,
+    RESOLVED_APPEAL = 3,
+    CANCELLED = 4,
+}
+
 // Generate a fake blockchain transaction ID
 export const generateTransactionId = (): string => {
   return '0x' + Array.from({ length: 64 }, () => 
@@ -97,4 +105,38 @@ export const addStatusChange = (
     status: newStatus,
     statusHistory: [...fine.statusHistory, statusChange]
   };
+};
+
+export const getFineStatusLabel = (status: FineStateInternal): string => {
+    switch (status) {
+        case FineStateInternal.PENDING:
+            return 'Pendiente';
+        case FineStateInternal.PAID:
+            return 'Pagada';
+        case FineStateInternal.APPEALED:
+            return 'Apelada';
+        case FineStateInternal.RESOLVED_APPEAL:
+            return 'Apelación Resuelta';
+        case FineStateInternal.CANCELLED:
+            return 'Cancelada';
+        default:
+            return 'Desconocido';
+    }
+};
+
+export const getFineStatusColor = (status: FineStateInternal): string => {
+    switch (status) {
+        case FineStateInternal.PENDING:
+            return 'warning';
+        case FineStateInternal.PAID:
+            return 'success';
+        case FineStateInternal.APPEALED:
+            return 'info';
+        case FineStateInternal.RESOLVED_APPEAL:
+            return 'success';
+        case FineStateInternal.CANCELLED:
+            return 'error';
+        default:
+            return 'default';
+    }
 };

@@ -5,32 +5,26 @@ import { getFineTypeLabel } from '../../utils/fineUtils';
 import Button from '../ui/Button';
 
 interface FineFormData {
-  plate: string;
-  timestamp: string;
+  evidenceFile: File | null;
+  plateNumber: string;
   location: string;
-  city: string;
-  fineType: FineType;
+  infractionType: FineType;
   cost: number;
-  ownerId: string;
-  ownerName: string;
-  evidence: File | null;
+  ownerIdentifier: string;
 }
 
 interface FineFormProps {
-  onSubmit: (data: Omit<FineFormData, 'evidence'>) => Promise<void>;
+  onSubmit: (data: FineFormData) => Promise<void>;
   isLoading: boolean;
 }
 
 const initialFormData: FineFormData = {
-  plate: '',
-  timestamp: new Date().toISOString().split('.')[0],
+  plateNumber: '',
   location: '',
-  city: '',
-  fineType: 'speeding',
+  infractionType: 'speeding',
   cost: 0,
-  ownerId: '',
-  ownerName: '',
-  evidence: null
+  ownerIdentifier: '',
+  evidenceFile: null
 };
 
 const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
@@ -50,7 +44,7 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
   const handleEvidenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setFormData(prev => ({ ...prev, evidence: file }));
+      setFormData(prev => ({ ...prev, evidenceFile: file }));
       
       // Create preview
       const reader = new FileReader();
@@ -64,45 +58,24 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simulate uploading evidence to IPFS
-    setUploading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setUploading(false);
-    
-    // Submit the form data without the evidence file
-    const { evidence, ...submissionData } = formData;
-    await onSubmit(submissionData);
+    // Send all form data including the evidence file
+    await onSubmit(formData);
   };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="plate" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="plateNumber" className="block text-sm font-medium text-gray-700">
             Placa *
           </label>
           <input
             type="text"
-            name="plate"
-            id="plate"
+            name="plateNumber"
+            id="plateNumber"
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.plate}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="timestamp" className="block text-sm font-medium text-gray-700">
-            Fecha y hora *
-          </label>
-          <input
-            type="datetime-local"
-            name="timestamp"
-            id="timestamp"
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.timestamp}
+            value={formData.plateNumber}
             onChange={handleChange}
           />
         </div>
@@ -124,30 +97,15 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
         </div>
         
         <div>
-          <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-            Ciudad *
-          </label>
-          <input
-            type="text"
-            name="city"
-            id="city"
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.city}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="fineType" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="infractionType" className="block text-sm font-medium text-gray-700">
             Tipo de infracción *
           </label>
           <select
-            name="fineType"
-            id="fineType"
+            name="infractionType"
+            id="infractionType"
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.fineType}
+            value={formData.infractionType}
             onChange={handleChange}
           >
             {['speeding', 'red_light', 'illegal_parking', 'no_documents', 'driving_under_influence', 'other'].map(type => (
@@ -175,31 +133,16 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
         </div>
         
         <div>
-          <label htmlFor="ownerId" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="ownerIdentifier" className="block text-sm font-medium text-gray-700">
             ID del propietario *
           </label>
           <input
             type="text"
-            name="ownerId"
-            id="ownerId"
+            name="ownerIdentifier"
+            id="ownerIdentifier"
             required
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.ownerId}
-            onChange={handleChange}
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="ownerName" className="block text-sm font-medium text-gray-700">
-            Nombre del propietario *
-          </label>
-          <input
-            type="text"
-            name="ownerName"
-            id="ownerName"
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.ownerName}
+            value={formData.ownerIdentifier}
             onChange={handleChange}
           />
         </div>
@@ -234,15 +177,15 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
             
             <div className="flex justify-center mt-2">
               <label
-                htmlFor="evidence"
+                htmlFor="evidenceFile"
                 className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none"
               >
                 <span>
                   {evidencePreview ? 'Cambiar' : 'Cargar imagen'}
                 </span>
                 <input
-                  id="evidence"
-                  name="evidence"
+                  id="evidenceFile"
+                  name="evidenceFile"
                   type="file"
                   accept="image/*"
                   className="sr-only"

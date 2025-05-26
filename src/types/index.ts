@@ -1,3 +1,5 @@
+import { FineStateInternal } from '../utils/fineUtils';
+
 export type User = {
   id: string;
   name: string;
@@ -26,37 +28,34 @@ export type FineType =
   | 'other';
 
 export type FineStatus = 
-  | 'pending'
-  | 'paid'
-  | 'appealed'
-  | 'rejected'
-  | 'verified';
+  | 'PENDING'
+  | 'PAID'
+  | 'APPEALED'
+  | 'RESOLVED_APPEAL'
+  | 'CANCELLED';
 
 export type Location = {
   latitude: number;
   longitude: number;
-  address?: string; // Dirección en texto como referencia opcional
+  address?: string;
 };
 
 export type Fine = {
   id: string;
-  transactionId: string; // Blockchain transaction ID
-  ipfsCid: string; // IPFS Content ID for evidence
+  transactionId: string;
+  ipfsCid: string;
   plate: string;
   timestamp: string;
-  location: Location;
-  city: string;
+  location: string;
   fineType: FineType;
-  status: FineStatus;
+  status: FineStateInternal;
   cost: number;
   ownerId: string;
-  ownerName: string;
-  idIoT?: string; // Optional IoT device ID
 };
 
 export type StatusChange = {
   timestamp: string;
-  status: FineStatus;
+  status: FineStateInternal;
   transactionId: string;
   reason?: string;
 };
@@ -68,7 +67,7 @@ export type FineWithHistory = Fine & {
 export type Metric = {
   label: string;
   value: number;
-  change: number; // percentage change from previous period
+  change: number;
 };
 
 export type Activity = {
