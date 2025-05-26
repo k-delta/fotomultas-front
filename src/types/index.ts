@@ -46,11 +46,15 @@ export type Fine = {
   ipfsCid: string;
   plate: string;
   timestamp: string;
-  location: string;
+  location: Location;
+  city?: string;
   fineType: FineType;
   status: FineStateInternal;
   cost: number;
   ownerId: string;
+  ownerName?: string;
+  idIoT?: string;
+  registeredBy?: string;
 };
 
 export type StatusChange = {

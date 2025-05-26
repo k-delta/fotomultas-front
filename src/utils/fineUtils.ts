@@ -42,17 +42,6 @@ export const formatDate = (dateString: string): string => {
   });
 };
 
-// Get color based on fine status
-export const getStatusColor = (status: FineStatus): string => {
-  switch (status) {
-    case 'pending': return 'bg-amber-100 text-amber-800';
-    case 'paid': return 'bg-green-100 text-green-800';
-    case 'appealed': return 'bg-purple-100 text-purple-800';
-    case 'rejected': return 'bg-red-100 text-red-800';
-    case 'verified': return 'bg-blue-100 text-blue-800';
-    default: return 'bg-gray-100 text-gray-800';
-  }
-};
 
 // Get label for fine type
 export const getFineTypeLabel = (type: FineType): string => {
@@ -88,7 +77,7 @@ export const verifyIpfsIntegrity = async (fine: Fine): Promise<boolean> => {
 // Add status change to fine history
 export const addStatusChange = (
   fine: FineWithHistory, 
-  newStatus: FineStatus, 
+  newStatus: FineStateInternal,
   reason?: string
 ): FineWithHistory => {
   const newTransactionId = generateTransactionId();
@@ -139,4 +128,16 @@ export const getFineStatusColor = (status: FineStateInternal): string => {
         default:
             return 'default';
     }
+};
+
+export const getStatusColorClasses = (status: FineStateInternal): string => {
+  const colorMap = {
+    [FineStateInternal.PENDING]: 'bg-yellow-100 text-yellow-800',
+    [FineStateInternal.PAID]: 'bg-green-100 text-green-800',
+    [FineStateInternal.APPEALED]: 'bg-purple-100 text-purple-800',
+    [FineStateInternal.RESOLVED_APPEAL]: 'bg-blue-100 text-blue-800',
+    [FineStateInternal.CANCELLED]: 'bg-red-100 text-red-800',
+  };
+
+  return colorMap[status] || 'bg-gray-100 text-gray-800';
 };

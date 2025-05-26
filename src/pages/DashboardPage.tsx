@@ -9,6 +9,7 @@ import StatusChart from '../components/dashboard/StatusChart';
 import TypeChart from '../components/dashboard/TypeChart';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
+import { getFineStatusLabel, getStatusColorClasses } from '../utils/fineUtils';
 
 const calculateMonthlyChange = (fines: any[], filterFn = (f: any) => true) => {
   const now = new Date();
@@ -83,12 +84,12 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (fines.length > 0) {
       const totalFines = fines.length;
-      const pendingFines = fines.filter(f => f.status === 'pending').length;
-      const paidFines = fines.filter(f => f.status === 'paid').length;
+      const pendingFines = fines.filter(f => getFineStatusLabel(f.status) === 'PENDING').length;
+      const paidFines = fines.filter(f => getFineStatusLabel(f.status) === 'PAID').length;
       // const appealedFines = fines.filter(f => f.status === 'appealed').length;
       // const totalAmount = fines.reduce((sum, fine) => sum + fine.cost, 0);
       const collectedAmount = fines
-        .filter(f => f.status === 'paid')
+        .filter(f => getFineStatusLabel(f.status) === 'PAID')
         .reduce((sum, fine) => sum + fine.cost, 0);
 
       setMetrics([
@@ -100,12 +101,12 @@ const DashboardPage: React.FC = () => {
         {
           label: 'Multas pendientes',
           value: pendingFines,
-          change: calculateMonthlyChange(fines, f => f.status === 'pending'),
+          change: calculateMonthlyChange(fines, f => f.status === 'PENDING'),
         },
         {
           label: 'Multas pagadas',
           value: paidFines,
-          change: calculateMonthlyChange(fines, f => f.status === 'paid'),
+          change: calculateMonthlyChange(fines, f => f.status === 'PAID'),
         },
         {
           label: 'Monto recaudado',
@@ -210,26 +211,9 @@ const DashboardPage: React.FC = () => {
                     </div>
                     <div className="ml-2">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${fine.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : fine.status === 'paid'
-                            ? 'bg-green-100 text-green-800'
-                            : fine.status === 'appealed'
-                              ? 'bg-purple-100 text-purple-800'
-                              : fine.status === 'verified'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-red-100 text-red-800'
-                          }`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(fine.status)}`}
                       >
-                        {fine.status === 'pending'
-                          ? 'Pendiente'
-                          : fine.status === 'paid'
-                            ? 'Pagada'
-                            : fine.status === 'appealed'
-                              ? 'Apelada'
-                              : fine.status === 'verified'
-                                ? 'Verificada'
-                                : 'Rechazada'}
+                        {getFineStatusLabel(fine.status)}
                       </span>
                     </div>
                   </div>
