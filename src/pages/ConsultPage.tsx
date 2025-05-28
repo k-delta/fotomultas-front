@@ -7,7 +7,7 @@ import Card from '../components/ui/Card';
 const ConsultPage: React.FC = () => {
   const [documentType, setDocumentType] = useState('cc');
   const [documentNumber, setDocumentNumber] = useState('');
-  const [plate, setPlate] = useState('');
+  const [plateNumber, setPlateNumber] = useState('');
   const [captchaValue, setCaptchaValue] = useState('');
   const [error, setError] = useState('');
 
@@ -24,7 +24,7 @@ const ConsultPage: React.FC = () => {
     }
 
     // Handle consultation logic here
-    console.log('Consulting:', { documentType, documentNumber, plate });
+    console.log('Consulting:', { documentType, documentNumber, plateNumber });
   };
 
   const refreshCaptcha = () => {
@@ -80,8 +80,8 @@ const ConsultPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                value={plate}
-                onChange={(e) => setPlate(e.target.value)}
+                value={plateNumber}
+                onChange={(e) => setPlateNumber(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 placeholder="ABC123"
               />

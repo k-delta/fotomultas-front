@@ -28,7 +28,7 @@ const FineDetailPage: React.FC = () => {
   } = useFineStore();
   
   const [isVerifying, setIsVerifying] = useState(false);
-  const [verificationResults, setVerificationResults] = useState<{ blockchain: boolean; ipfs: boolean } | null>(null);
+  const [verificationResults, setVerificationResults] = useState<{ blockchain: boolean } | null>(null);
   
   useEffect(() => {
     if (id) {
@@ -54,7 +54,7 @@ const FineDetailPage: React.FC = () => {
     if (!id) return;
     
     const reason = newStatus === FineStateInternal.APPEALED 
-      ? prompt('Por favor, ingrese el motivo de la apelación:') 
+      ? prompt('Por favor, ingrese el motivo de la apelación:') || undefined
       : undefined;
     
     if (newStatus === FineStateInternal.APPEALED && !reason) {
@@ -72,8 +72,8 @@ const FineDetailPage: React.FC = () => {
     );
   }
   
-  const showActionButtons = selectedFine.status === FineStateInternal.PENDING || 
-                          selectedFine.status === FineStateInternal.APPEALED;
+  const showActionButtons = selectedFine.currentState === FineStateInternal.PENDING ||
+    selectedFine.currentState === FineStateInternal.APPEALED;
   
   return (
     <div className="space-y-6">
@@ -86,10 +86,9 @@ const FineDetailPage: React.FC = () => {
             Detalles de multa {selectedFine.id}
           </h1>
 
-          console.log(selectedFine)
           <StatusBadge 
-            status={getFineStatusLabel(selectedFine.status)} 
-            color={getFineStatusColor(selectedFine.status)} 
+            status={getFineStatusLabel(selectedFine.currentState)} 
+            color={getFineStatusColor(selectedFine.currentState) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
           />
         </div>
       </div>
@@ -103,23 +102,23 @@ const FineDetailPage: React.FC = () => {
                 <dl className="grid grid-cols-1 gap-3">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">ID de multa</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.id}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.id || 'N/A'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Placa</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.plate}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.plateNumber || 'N/A'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Fecha y hora</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{formatDate(selectedFine.timestamp)}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.timestamp ? formatDate(selectedFine.timestamp) : 'N/A'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Tipo de infracción</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{getFineTypeLabel(selectedFine.fineType)}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.infractionType ? getFineTypeLabel(selectedFine.infractionType) : 'N/A'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Monto</dt>
-                    <dd className="mt-1 text-sm text-gray-900 font-semibold">{formatCurrency(selectedFine.cost)}</dd>
+                    <dd className="mt-1 text-sm text-gray-900 font-semibold">{selectedFine?.cost ? formatCurrency(selectedFine.cost) : 'N/A'}</dd>
                   </div>
                 </dl>
               </div>
@@ -129,11 +128,11 @@ const FineDetailPage: React.FC = () => {
                 <dl className="grid grid-cols-1 gap-3">
                   <div>
                     <dt className="text-sm font-medium text-gray-500">Ubicación</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.location}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.location || 'N/A'}</dd>
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-gray-500">ID del propietario</dt>
-                    <dd className="mt-1 text-sm text-gray-900">{selectedFine.ownerId}</dd>
+                    <dd className="mt-1 text-sm text-gray-900">{selectedFine?.ownerIdentifier || 'N/A'}</dd>
                   </div>
                 </dl>
               </div>
@@ -148,11 +147,11 @@ const FineDetailPage: React.FC = () => {
                 </div>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">Evidencia en IPFS</h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  CID: {selectedFine.ipfsCid.substring(0, 20)}...
+                  CID: {selectedFine.evidenceCID.substring(0, 20)}...
                 </p>
                 <div className="mt-4">
                   <a 
-                    href={`https://ipfs.io/ipfs/${selectedFine.ipfsCid}`} 
+                    href={`https://ipfs.io/ipfs/${selectedFine.evidenceCID}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -174,13 +173,13 @@ const FineDetailPage: React.FC = () => {
                 </div>
                 <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                   <span className="text-sm font-medium text-gray-500">Hash IPFS</span>
-                  <span className="text-sm font-mono text-gray-900">{selectedFine.ipfsCid.substring(0, 20)}...</span>
+                  <span className="text-sm font-mono text-gray-900">{selectedFine.evidenceCID.substring(0, 20)}...</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-500">Estado actual</span>
                   <StatusBadge 
-                    status={getFineStatusLabel(selectedFine.status)} 
-                    color={getFineStatusColor(selectedFine.status)} 
+                    status={getFineStatusLabel(selectedFine.currentState)} 
+                    color={getFineStatusColor(selectedFine.currentState) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
                   />
                 </div>
               </div>
@@ -199,8 +198,7 @@ const FineDetailPage: React.FC = () => {
             {verificationResults && (
               <div className="mt-4">
                 <VerificationResults 
-                  blockchain={verificationResults.blockchain} 
-                  ipfs={verificationResults.ipfs} 
+                  blockchain={verificationResults.blockchain}
                 />
               </div>
             )}
@@ -211,7 +209,7 @@ const FineDetailPage: React.FC = () => {
           {showActionButtons && (
             <Card title="Acciones">
               <div className="space-y-3">
-                {selectedFine.status === FineStateInternal.PENDING && (
+                {selectedFine.currentState === FineStateInternal.PENDING && (
                   <>
                     <Button
                       onClick={() => handleUpdateStatus(FineStateInternal.PAID)}
@@ -232,7 +230,7 @@ const FineDetailPage: React.FC = () => {
                   </>
                 )}
                 
-                {selectedFine.status === FineStateInternal.APPEALED && (
+                {selectedFine.currentState === FineStateInternal.APPEALED && (
                   <>
                     <Button
                       onClick={() => handleUpdateStatus(FineStateInternal.CANCELLED)}

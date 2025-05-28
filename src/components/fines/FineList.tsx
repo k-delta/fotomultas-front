@@ -211,21 +211,21 @@ const FineList: React.FC<FineListProps> = ({
                     {fine.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {fine.plate}
+                    {fine.plateNumber}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(fine.timestamp)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getFineTypeLabel(fine.fineType)}
+                    {getFineTypeLabel(fine.infractionType)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatCurrency(fine.cost)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge 
-                      status={getFineStatusLabel(fine.status)} 
-                      color={getFineStatusColor(fine.status) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
+                      status={getFineStatusLabel(fine.currentState)} 
+                      color={getFineStatusColor(fine.currentState) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

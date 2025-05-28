@@ -31,7 +31,7 @@ function App() {
           
           <Route path="vehicles">
             <Route index element={<VehiclesPage />} />
-            <Route path=":plate" element={<VehicleDetailPage />} />
+            <Route path=":plateNumber" element={<VehicleDetailPage />} />
           </Route>
           
           <Route path="users" element={<UsersPage />} />

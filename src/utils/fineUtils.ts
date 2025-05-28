@@ -1,4 +1,4 @@
-import { Fine, FineStatus, FineType, FineWithHistory, StatusChange } from '../types';
+import { Fine, FineType, FineWithHistory, StatusChange } from '../types';
 
 export enum FineStateInternal {
     PENDING = 0,
@@ -32,8 +32,15 @@ export const formatCurrency = (amount: number): string => {
 };
 
 // Format date
-export const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleString('es-CO', {
+export const formatDate = (dateString: string | number | null | undefined): string => {
+  if (!dateString) return 'N/A';
+  
+  // If it's a Unix timestamp (seconds), convert to milliseconds
+  const date = typeof dateString === 'string' && !isNaN(Number(dateString))
+    ? new Date(Number(dateString) * 1000)
+    : new Date(dateString);
+
+  return date.toLocaleString('es-CO', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -84,14 +91,14 @@ export const addStatusChange = (
   
   const statusChange: StatusChange = {
     timestamp: new Date().toISOString(),
-    status: newStatus,
+    currentState:newStatus,
     transactionId: newTransactionId,
     reason
   };
   
   return {
     ...fine,
-    status: newStatus,
+    currentState: newStatus,
     statusHistory: [...fine.statusHistory, statusChange]
   };
 };

@@ -7,16 +7,16 @@ import Card from '../components/ui/Card';
 import FineList from '../components/fines/FineList';
 
 const VehicleDetailPage: React.FC = () => {
-  const { plate } = useParams<{ plate: string }>();
+  const { plateNumber } = useParams<{ plateNumber: string }>();
   const { getVehicleByPlate, selectedVehicle, isLoading } = useVehicleStore();
   const { getFines, fines } = useFineStore();
   
   useEffect(() => {
-    if (plate) {
-      getVehicleByPlate(plate);
+    if (plateNumber) {
+      getVehicleByPlate(plateNumber);
       getFines();
     }
-  }, [plate, getVehicleByPlate, getFines]);
+  }, [plateNumber, getVehicleByPlate, getFines]);
 
   if (isLoading || !selectedVehicle) {
     return (
@@ -26,7 +26,7 @@ const VehicleDetailPage: React.FC = () => {
     );
   }
 
-  const vehicleFines = fines.filter(fine => fine.plate === plate);
+  const vehicleFines = fines.filter(fine => fine.plateNumber === plateNumber);
 
   const getStatusClass = (status: 'valid' | 'expired' | 'pending') => {
     switch (status) {
@@ -46,7 +46,7 @@ const VehicleDetailPage: React.FC = () => {
           <ArrowLeft size={20} />
         </Link>
         <h1 className="text-2xl font-bold text-gray-900">
-          Detalles del vehículo {selectedVehicle.plate}
+          Detalles del vehículo {selectedVehicle.plateNumber}
         </h1>
       </div>
 
@@ -99,7 +99,7 @@ const VehicleDetailPage: React.FC = () => {
                     <Shield className="mt-1 h-5 w-5 text-gray-400" />
                     <div className="ml-2">
                       <dt className="text-sm font-medium text-gray-500">ID</dt>
-                      <dd className="mt-1 text-sm text-gray-900">{selectedVehicle.ownerId}</dd>
+                      <dd className="mt-1 text-sm text-gray-900">{selectedVehicle.ownerIdentifier}</dd>
                     </div>
                   </div>
                 </dl>
@@ -145,7 +145,7 @@ const VehicleDetailPage: React.FC = () => {
               </p>
               <div className="mt-6 space-y-3">
                 <Link
-                  to={`/fines/new?plate=${selectedVehicle.plate}`}
+                  to={`/fines/new?plateNumber=${selectedVehicle.plateNumber}`}
                   className="inline-flex items-center justify-center w-full px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                 >
                   <FileText className="mr-2 h-4 w-4" />

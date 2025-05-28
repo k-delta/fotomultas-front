@@ -51,7 +51,7 @@ const calculateMonthlyAmountChange = (fines: any[]) => {
       const fineDate = new Date(fine.timestamp);
       return fineDate.getMonth() === currentMonth && 
              fineDate.getFullYear() === currentYear && 
-             fine.status === 'paid';
+             getFineStatusLabel(fine.currentState) === 'Pagada';
     })
     .reduce((sum, fine) => sum + fine.cost, 0);
 
@@ -60,7 +60,7 @@ const calculateMonthlyAmountChange = (fines: any[]) => {
       const fineDate = new Date(fine.timestamp);
       return fineDate.getMonth() === lastMonth && 
              fineDate.getFullYear() === lastMonthYear && 
-             fine.status === 'paid';
+             getFineStatusLabel(fine.currentState) === 'Pagada';
     })
     .reduce((sum, fine) => sum + fine.cost, 0);
 
@@ -84,12 +84,12 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     if (fines.length > 0) {
       const totalFines = fines.length;
-      const pendingFines = fines.filter(f => getFineStatusLabel(f.status) === 'PENDING').length;
-      const paidFines = fines.filter(f => getFineStatusLabel(f.status) === 'PAID').length;
-      // const appealedFines = fines.filter(f => f.status === 'appealed').length;
+      const pendingFines = fines.filter(f => getFineStatusLabel(f.currentState) === 'Pendiente').length;
+      const paidFines = fines.filter(f => getFineStatusLabel(f.currentState) === 'Pagada').length;
+      // const appealedFines = fines.filter(f => f.currentState === 'appealed').length;
       // const totalAmount = fines.reduce((sum, fine) => sum + fine.cost, 0);
       const collectedAmount = fines
-        .filter(f => getFineStatusLabel(f.status) === 'PAID')
+        .filter(f => getFineStatusLabel(f.currentState) === 'Pagada')
         .reduce((sum, fine) => sum + fine.cost, 0);
 
       setMetrics([
@@ -101,12 +101,12 @@ const DashboardPage: React.FC = () => {
         {
           label: 'Multas pendientes',
           value: pendingFines,
-          change: calculateMonthlyChange(fines, f => f.status === 'PENDING'),
+          change: calculateMonthlyChange(fines, f => getFineStatusLabel(f.currentState) === 'Pendiente'),
         },
         {
           label: 'Multas pagadas',
           value: paidFines,
-          change: calculateMonthlyChange(fines, f => f.status === 'PAID'),
+          change: calculateMonthlyChange(fines, f => getFineStatusLabel(f.currentState) === 'Pagada'),
         },
         {
           label: 'Monto recaudado',
@@ -202,18 +202,18 @@ const DashboardPage: React.FC = () => {
                       </div>
                       <div className="ml-3">
                         <p className="text-sm font-medium text-gray-900">
-                          Multa {fine.id} - Placa {fine.plate}
+                          Multa {fine.id} - Placa {fine.plateNumber}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        {/* <p className="text-xs text-gray-500">
                           {fine.city} • {new Date(fine.timestamp).toLocaleDateString()}
-                        </p>
+                        </p> */}
                       </div>
                     </div>
                     <div className="ml-2">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(fine.status)}`}
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(fine.currentState)}`}
                       >
-                        {getFineStatusLabel(fine.status)}
+                        {getFineStatusLabel(fine.currentState)}
                       </span>
                     </div>
                   </div>

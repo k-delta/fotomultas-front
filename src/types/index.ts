@@ -9,11 +9,11 @@ export type User = {
 };
 
 export type Vehicle = {
-  plate: string;
+  plateNumber: string;
   type: string;
   year: number;
   city: string;
-  ownerId: string;
+  ownerIdentifier: string;
   ownerName: string;
   soatStatus: 'valid' | 'expired' | 'pending';
   inspectionStatus: 'valid' | 'expired' | 'pending';
@@ -34,32 +34,23 @@ export type FineStatus =
   | 'RESOLVED_APPEAL'
   | 'CANCELLED';
 
-export type Location = {
-  latitude: number;
-  longitude: number;
-  address?: string;
-};
-
 export type Fine = {
   id: string;
-  transactionId: string;
-  ipfsCid: string;
-  plate: string;
+  plateNumber: string;
+  evidenceCID: string;
+  location: string;
   timestamp: string;
-  location: Location;
-  city?: string;
-  fineType: FineType;
-  status: FineStateInternal;
+  infractionType: FineType;
   cost: number;
-  ownerId: string;
-  ownerName?: string;
-  idIoT?: string;
+  ownerIdentifier: string;
+  currentState: FineStateInternal;
+  transactionId?: string;
   registeredBy?: string;
 };
 
 export type StatusChange = {
   timestamp: string;
-  status: FineStateInternal;
+  currentState: FineStateInternal;
   transactionId: string;
   reason?: string;
 };
@@ -78,7 +69,7 @@ export type Activity = {
   id: string;
   type: 'fine_registered' | 'fine_paid' | 'fine_appealed' | 'status_change';
   fineId: string;
-  plate: string;
+  plateNumber: string;
   timestamp: string;
   description: string;
 };

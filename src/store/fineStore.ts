@@ -1,24 +1,12 @@
 import { create } from 'zustand';
-import { Fine, FineWithHistory, FineType, FineStatus, Activity, Location } from '../types/index';
+import { FineWithHistory, FineType, Activity } from '../types/index';
 import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal, getFineStatusLabel, verifyBlockchainIntegrity, verifyIpfsIntegrity } from '../utils/fineUtils';
 
-const cityCoordinates = {
-  'Bogotá': { lat: 4.6097, lng: -74.0817 },
-  'Medellín': { lat: 6.2442, lng: -75.5812 },
-  'Cali': { lat: 3.4516, lng: -76.5320 },
-  'Barranquilla': { lat: 10.9639, lng: -74.7964 },
-  'Cartagena': { lat: 10.3910, lng: -75.4794 }
-};
-
-const generateRandomCoordinate = (base: number, variance: number = 0.02): number => {
-  return base + (Math.random() - 0.5) * variance;
-};
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
   const fineTypes: FineType[] = ['speeding', 'red_light', 'illegal_parking', 'no_documents', 'driving_under_influence', 'other'];
   const statuses: FineStateInternal[] = [FineStateInternal.PENDING, FineStateInternal.PAID, FineStateInternal.APPEALED, FineStateInternal.RESOLVED_APPEAL, FineStateInternal.CANCELLED];
-  const cities = Object.keys(cityCoordinates);
   
   return Array.from({ length: 50 }, (_, i) => {
     const createdDate = new Date();
@@ -26,33 +14,26 @@ const generateMockFines = (): FineWithHistory[] => {
     
     const transactionId = generateTransactionId();
     const initialStatus: FineStateInternal = Math.random() > 0.5 ? FineStateInternal.PENDING : statuses[Math.floor(Math.random() * statuses.length)];
-    const city = cities[Math.floor(Math.random() * cities.length)];
-    const cityCoords = cityCoordinates[city];
     
     //GENERATE FINE
     const fine: FineWithHistory = {
       id: `F${1000 + i}`,
       transactionId,
-      ipfsCid: generateIpfsCid(),
-      plate: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 1000)}`,
+      evidenceCID: generateIpfsCid(),
+      plateNumber: `${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 1000)}`,
       timestamp: createdDate.toISOString(),
-      location: {
-        latitude: generateRandomCoordinate(cityCoords.lat),
-        longitude: generateRandomCoordinate(cityCoords.lng),
-        address: `${['Calle', 'Carrera', 'Avenida'][Math.floor(Math.random() * 3)]} ${Math.floor(Math.random() * 100) + 1} #${Math.floor(Math.random() * 100) + 1}-${Math.floor(Math.random() * 100) + 1}`
-      },
-      city,
-      fineType: fineTypes[Math.floor(Math.random() * fineTypes.length)],
-      status: initialStatus,
+      location: `${['Calle', 'Carrera', 'Avenida'][Math.floor(Math.random() * 3)]} ${Math.floor(Math.random() * 100) + 1} #${Math.floor(Math.random() * 100) + 1}-${Math.floor(Math.random() * 100) + 1}`,
+      
+
+      infractionType: fineTypes[Math.floor(Math.random() * fineTypes.length)],
+      currentState: initialStatus,
       cost: Math.floor(Math.random() * 500000) + 100000,
-      ownerId: `U${Math.floor(Math.random() * 100) + 1}`,
-      ownerName: `Propietario ${Math.floor(Math.random() * 100) + 1}`,
-      idIoT: Math.random() > 0.5 ? `IoT-${Math.floor(Math.random() * 1000) + 1}` : undefined,
+      ownerIdentifier: `U${Math.floor(Math.random() * 100) + 1}`,
       registeredBy: generateTransactionId(),
       statusHistory: [
         {
           timestamp: createdDate.toISOString(),
-          status: FineStateInternal.PENDING,
+          currentState: FineStateInternal.PENDING,
           transactionId
         }
       ]
@@ -65,7 +46,7 @@ const generateMockFines = (): FineWithHistory[] => {
       
       fine.statusHistory.push({
         timestamp: secondDate.toISOString(),
-        status: initialStatus,
+        currentState: initialStatus,
         transactionId: generateTransactionId(),
         reason: initialStatus === FineStateInternal.APPEALED ? 'El ciudadano presenta pruebas de inocencia' : undefined
       });
@@ -86,23 +67,23 @@ const generateRecentActivities = (fines: FineWithHistory[]): Activity[] => {
         id: `A${Math.random().toString().substring(2, 10)}`,
         type: 'fine_registered',
         fineId: fine.id,
-        plate: fine.plate,
+        plateNumber: fine.plateNumber,
         timestamp: fine.timestamp,
-        description: `Multa ${fine.id} registrada para placa ${fine.plate}`
+        description: `Multa ${fine.id} registrada para placa ${fine.plateNumber}`
       });
       
-      if (fine.status !== FineStateInternal.PENDING) {
+      if (fine.currentState !== FineStateInternal.PENDING) {
         const latestChange = fine.statusHistory[fine.statusHistory.length - 1];
         
         activities.push({
           id: `A${Math.random().toString().substring(2, 10)}`,
-          type: fine.status === FineStateInternal.PAID 
+          type: fine.currentState === FineStateInternal.PAID 
             ? 'fine_paid' 
-            : (fine.status === FineStateInternal.APPEALED ? 'fine_appealed' : 'status_change'),
+            : (fine.currentState === FineStateInternal.APPEALED ? 'fine_appealed' : 'status_change'),
           fineId: fine.id,
-          plate: fine.plate,
+          plateNumber: fine.plateNumber,
           timestamp: latestChange.timestamp,
-          description: `Multa ${fine.id} marcada como ${getFineStatusLabel(fine.status)}`
+          description: `Multa ${fine.id} marcada como ${getFineStatusLabel(fine.currentState)}`
         });
       }
       
@@ -127,7 +108,7 @@ interface FineStore {
   createFine: (formData: FormData) => Promise<FineWithHistory>;
   updateFineStatus: (id: string, status: FineStateInternal, reason?: string) => Promise<void>;
   getActivities: () => Promise<Activity[]>;
-  verifyFineIntegrity: (id: string) => Promise<{ blockchain: boolean; ipfs: boolean }>;
+  verifyFineIntegrity: (id: string) => Promise<{ blockchain: boolean }>;
 }
 
 export const useFineStore = create<FineStore>((set, get) => ({
@@ -157,32 +138,28 @@ export const useFineStore = create<FineStore>((set, get) => ({
       // Map API response to frontend FineWithHistory type
       const mappedFines: FineWithHistory[] = apiFines.map((apiFine: any) => ({
         id: apiFine.id,
-        // transactionId from API if available, otherwise generate (API list response doesn't have it)
-        transactionId: apiFine.transactionId || generateTransactionId(), 
-        // Mapping evidenceCID and hashImageIPFS to ipfsCid
-        ipfsCid: apiFine.evidenceCID || apiFine.hashImageIPFS || generateIpfsCid(), // Use API value if available
-        plate: apiFine.plateNumber, // Mapping plateNumber to plate
+        transactionId: apiFine.transactionId || generateTransactionId(),
+        evidenceCID: apiFine.evidenceCID || apiFine.hashImageIPFS || generateIpfsCid(),
+        plateNumber: apiFine.plateNumber,
         timestamp: apiFine.timestamp,
-        // Mapping string location to Location object - needs proper lat/lng if available
-        location: { address: apiFine.location, latitude: 0, longitude: 0 }, // Using address from API
-        city: apiFine.city, // Mapping city from API
-        fineType: apiFine.infractionType, // Mapping infractionType to fineType
-        // Mapping currentState to status (FineStateInternal enum)
-        status: ((): FineStateInternal => {
+        location: apiFine.location,
+        city: apiFine.city,
+        infractionType: apiFine.infractionType,
+        currentState: ((): FineStateInternal => {
           switch (apiFine.currentState) {
-            case '0': return FineStateInternal.PENDING;
-            case '1': return FineStateInternal.PAID;
-            case '2': return FineStateInternal.APPEALED;
-            // Add more mappings for other states from API if known
-            default: return FineStateInternal.PENDING; // Default to PENDING if unknown
+            case 'pending': return FineStateInternal.PENDING;
+            case 'paid': return FineStateInternal.PAID;
+            case 'appealed': return FineStateInternal.APPEALED;
+            case 'resolved_appeal': return FineStateInternal.RESOLVED_APPEAL;
+            case 'cancelled': return FineStateInternal.CANCELLED;
+            default: return FineStateInternal.PENDING;
           }
         })(),
-        cost: parseInt(apiFine.cost, 10), // Convert cost to number
-        ownerId: apiFine.ownerIdentifier, // Mapping ownerIdentifier to ownerId
-        ownerName: apiFine.ownerName, // Mapping ownerName from API (if available)
-        idIoT: apiFine.externalSystemId, // Mapping externalSystemId to idIoT (if available)
-        registeredBy: apiFine.registeredBy, // Mapping registeredBy from API (if available)
-        statusHistory: [], // statusHistory is not in API list response, initialize as empty
+        cost: parseInt(apiFine.cost, 10),
+        ownerIdentifier: apiFine.ownerIdentifier,
+        ownerName: apiFine.ownerName,
+        registeredBy: apiFine.registeredBy,
+        statusHistory: []
       }));
       
       set({ fines: mappedFines });
@@ -199,15 +176,41 @@ export const useFineStore = create<FineStore>((set, get) => ({
   getFineById: async (id: string) => {
     set({ isLoading: true });
     try {
-      // TODO: Implement real API call to get a single fine with history
-      // For now, find in mock data
-      const fine = get().fines.find(f => f.id === id);
-      set({ selectedFine: fine || null });
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-      set({ isLoading: false });
+      const response = await fetch(`/api/fines/${id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar la multa');
+      }
+
+      const fine = await response.json();
+      // Map API response to frontend FineWithHistory type
+      const mappedFine: FineWithHistory = {
+        id: fine.id,
+        plateNumber: fine.plateNumber,
+        evidenceCID: fine.evidenceCID || fine.hashImageIPFS || generateIpfsCid(),
+        location: fine.location,
+        timestamp: fine.timestamp,
+        infractionType: fine.infractionType,
+        cost: parseInt(fine.cost, 10),
+        ownerIdentifier: fine.ownerIdentifier,
+        currentState: fine.currentState,
+        registeredBy: fine.registeredBy,
+        
+        transactionId: fine.transactionId || generateTransactionId(),
+        statusHistory: fine.statusHistory || []
+      };
+
+      set({ selectedFine: mappedFine });
     } catch (error) {
-      set({ isLoading: false });
       console.error('Error fetching fine:', error);
+      set({ error: 'Error al cargar la multa' });
+    } finally {
+      set({ isLoading: false });
     }
   },
   
@@ -224,35 +227,28 @@ export const useFineStore = create<FineStore>((set, get) => ({
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Convert FormData to object for mock data
-      const fineData = { // Assuming form data provides these fields
-        plate: formData.get('plate') as string,
-        // Assuming location is submitted as separate address, lat, lng fields or similar
-        location: { 
-            address: formData.get('location-address') as string,
-            latitude: parseFloat(formData.get('location-lat') as string || '0'),
-            longitude: parseFloat(formData.get('location-lng') as string || '0')
-        } as Location,
-        city: formData.get('city') as string,
-        fineType: formData.get('fineType') as FineType,
+      const fineData = {
+        plateNumber: formData.get('plateNumber') as string,
+        location: formData.get('location-address') as string,
+        infractionType: formData.get('infractionType') as FineType,
         cost: parseInt(formData.get('cost') as string || '0'),
-        ownerId: formData.get('ownerId') as string,
-        ownerName: formData.get('ownerName') as string,
+        ownerIdentifier: formData.get('ownerIdentifier') as string,
         timestamp: new Date().toISOString()
       };
       
       const transactionId = generateTransactionId();
-      const ipfsCid = generateIpfsCid();
+      const evidenceCID = generateIpfsCid();
       
       const newFine: FineWithHistory = {
         id: `F${1000 + get().fines.length + 1}`,
         transactionId,
-        ipfsCid,
-        status: FineStateInternal.PENDING, // New fines start as PENDING
+        evidenceCID,
         ...fineData,
+        currentState: FineStateInternal.PENDING,
         statusHistory: [
           {
             timestamp: new Date().toISOString(),
-            status: FineStateInternal.PENDING, // Use FineStateInternal enum
+            currentState: FineStateInternal.PENDING,
             transactionId
           }
         ]
@@ -262,9 +258,9 @@ export const useFineStore = create<FineStore>((set, get) => ({
         id: `A${Math.random().toString().substring(2, 10)}`,
         type: 'fine_registered',
         fineId: newFine.id,
-        plate: newFine.plate,
+        plateNumber: newFine.plateNumber,
         timestamp: new Date().toISOString(),
-        description: `Multa ${newFine.id} registrada para placa ${newFine.plate}`
+        description: `Multa ${newFine.id} registrada para placa ${newFine.plateNumber}`
       };
       
       set(state => ({
@@ -323,26 +319,26 @@ export const useFineStore = create<FineStore>((set, get) => ({
   verifyFineIntegrity: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      // TODO: Implement real verification
-      const fine = get().fines.find(f => f.id === id);
-      if (!fine) {
-        throw new Error('Multa no encontrada');
+      const response = await fetch(`/fines/${id}/integrity`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al verificar la integridad de la multa');
       }
-      // Simulate verification
-      const blockchainValid = await verifyBlockchainIntegrity(fine);
-      const ipfsValid = await verifyIpfsIntegrity(fine);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay
+
+      const data = await response.json();
       return {
-        blockchain: blockchainValid,
-        ipfs: ipfsValid
+        blockchain: data.isIntegrityValid
       };
     } catch (error) {
       console.error('Error verifying fine integrity:', error);
       set({ error: 'Error al verificar integridad de multa' });
       return {
-        blockchain: false,
-        ipfs: false
+        blockchain: false
       };
     } finally {
       set({ isLoading: false });

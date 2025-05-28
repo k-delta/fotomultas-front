@@ -14,7 +14,7 @@ interface TypeCount {
 
 const TypeChart: React.FC<TypeChartProps> = ({ fines }) => {
   const typeCount = fines.reduce<Record<string, number>>((acc, fine) => {
-    acc[fine.fineType] = (acc[fine.fineType] || 0) + 1;
+    acc[fine.infractionType] = (acc[fine.infractionType] || 0) + 1;
     return acc;
   }, {});
   
