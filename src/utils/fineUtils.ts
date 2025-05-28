@@ -63,24 +63,6 @@ export const getFineTypeLabel = (type: FineType): string => {
   }
 };
 
-// Verify blockchain integrity (simulated)
-export const verifyBlockchainIntegrity = async (fine: Fine): Promise<boolean> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // For demo purposes, we'll return true 95% of the time
-  return Math.random() > 0.05;
-};
-
-// Verify IPFS evidence integrity (simulated)
-export const verifyIpfsIntegrity = async (fine: Fine): Promise<boolean> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // For demo purposes, we'll return true 90% of the time
-  return Math.random() > 0.1;
-};
-
 // Add status change to fine history
 export const addStatusChange = (
   fine: FineWithHistory, 

@@ -53,14 +53,27 @@ const FineDetailPage: React.FC = () => {
   const handleUpdateStatus = async (newStatus: FineStateInternal) => {
     if (!id) return;
     
-    const reason = newStatus === FineStateInternal.APPEALED 
-      ? prompt('Por favor, ingrese el motivo de la apelación:') || undefined
-      : undefined;
-    
-    if (newStatus === FineStateInternal.APPEALED && !reason) {
-      return; // User cancelled
+    let reason: string | undefined;
+
+    if (newStatus === FineStateInternal.APPEALED) {
+      const promptReason = prompt('Por favor, ingrese el motivo de la apelación:');
+      if (promptReason === null || promptReason.trim() === '') {
+        return; // User cancelled or entered empty reason
+      }
+      reason = promptReason.trim();
+    } else if (newStatus === FineStateInternal.CANCELLED) {
+       const promptReason = prompt('Por favor, ingrese el motivo de la cancelación:');
+      if (promptReason === null || promptReason.trim() === '') {
+        return; // User cancelled or entered empty reason
+      }
+      reason = promptReason.trim();
+    } else if (newStatus === FineStateInternal.RESOLVED_APPEAL) {
+      reason = 'Apelacion valida';
+    } else if (newStatus === FineStateInternal.PAID) {
+       reason = 'Usuario pago';
     }
-    
+    // For other statuses, reason remains undefined
+
     await updateFineStatus(id, newStatus, reason);
   };
   
@@ -87,8 +100,8 @@ const FineDetailPage: React.FC = () => {
           </h1>
 
           <StatusBadge 
-            status={getFineStatusLabel(selectedFine.currentState)} 
-            color={getFineStatusColor(selectedFine.currentState) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
+            status={getFineStatusLabel(selectedFine.currentState as FineStateInternal)} 
+            color={getFineStatusColor(selectedFine.currentState as FineStateInternal) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
           />
         </div>
       </div>
@@ -169,7 +182,7 @@ const FineDetailPage: React.FC = () => {
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                   <span className="text-sm font-medium text-gray-500">ID de transacción</span>
-                  <span className="text-sm font-mono text-gray-900">{selectedFine.transactionId.substring(0, 20)}...</span>
+                  <span className="text-sm font-mono text-gray-900">{selectedFine.transactionId?.substring(0, 20) || 'N/A'}...</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-gray-200 pb-3">
                   <span className="text-sm font-medium text-gray-500">Hash IPFS</span>
@@ -178,8 +191,8 @@ const FineDetailPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-500">Estado actual</span>
                   <StatusBadge 
-                    status={getFineStatusLabel(selectedFine.currentState)} 
-                    color={getFineStatusColor(selectedFine.currentState) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
+                    status={getFineStatusLabel(selectedFine.currentState as FineStateInternal)} 
+                    color={getFineStatusColor(selectedFine.currentState as FineStateInternal) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
                   />
                 </div>
               </div>

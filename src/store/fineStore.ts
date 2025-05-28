@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { FineWithHistory, FineType, Activity } from '../types/index';
-import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal, getFineStatusLabel, verifyBlockchainIntegrity, verifyIpfsIntegrity } from '../utils/fineUtils';
-
+import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal, getFineStatusLabel } from '../utils/fineUtils';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
@@ -198,9 +197,17 @@ export const useFineStore = create<FineStore>((set, get) => ({
         infractionType: fine.infractionType,
         cost: parseInt(fine.cost, 10),
         ownerIdentifier: fine.ownerIdentifier,
-        currentState: fine.currentState,
+        currentState: ((): FineStateInternal => {
+          switch (fine.currentState) {
+            case 'pending': return FineStateInternal.PENDING;
+            case 'paid': return FineStateInternal.PAID;
+            case 'appealed': return FineStateInternal.APPEALED;
+            case 'resolved_appeal': return FineStateInternal.RESOLVED_APPEAL;
+            case 'cancelled': return FineStateInternal.CANCELLED;
+            default: return FineStateInternal.PENDING;
+          }
+        })(),
         registeredBy: fine.registeredBy,
-        
         transactionId: fine.transactionId || generateTransactionId(),
         statusHistory: fine.statusHistory || []
       };
@@ -217,13 +224,6 @@ export const useFineStore = create<FineStore>((set, get) => ({
   createFine: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      // Here you would make an actual API call to your backend
-      // The backend would handle:
-      // 1. Upload the image to IPFS
-      // 2. Register the fine in the blockchain
-      // 3. Store the fine data in your database
-      
-      // For now, we'll simulate the API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Convert FormData to object for mock data
@@ -281,21 +281,44 @@ export const useFineStore = create<FineStore>((set, get) => ({
   updateFineStatus: async (id: string, status: FineStateInternal, reason?: string) => {
     set({ isLoading: true, error: null });
     try {
-      // TODO: Implement real API call to update fine status
-      // For now, update in mock data
+      let finalReason = reason;
+      if (status === FineStateInternal.PAID && (reason === null || reason === undefined)) {
+        finalReason = 'Usuario pago';
+      }
+
+      const response = await fetch(`/api/fines/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newState: status, // Use the numerical enum value
+          reason: finalReason
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al actualizar estado de multa');
+      }
+
+      // Update local state with the new status
       set(state => ({
         fines: state.fines.map(fine => {
           if (fine.id === id) {
-            const updatedFine = addStatusChange(fine, status, reason);
-            return updatedFine;
+            // Reuse addStatusChange to immutably update the fine object
+            return addStatusChange(fine, status, reason);
           }
           return fine;
-        })
+        }),
+        selectedFine: state.selectedFine && state.selectedFine.id === id 
+          ? addStatusChange(state.selectedFine, status, reason) 
+          : state.selectedFine,
       }));
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+      
     } catch (error) {
       console.error('Error updating fine status:', error);
-      set({ error: 'Error al actualizar estado de multa' });
+      set({ error: `Error al actualizar estado de multa: ${error instanceof Error ? error.message : 'Unknown error'}` });
     } finally {
       set({ isLoading: false });
     }

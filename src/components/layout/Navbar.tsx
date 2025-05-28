@@ -71,7 +71,7 @@ const Navbar: React.FC = () => {
                 Multas
               </Link>
               
-              <Link 
+              {/* <Link 
                 to="/vehicles" 
                 className={`inline-flex items-center px-3 py-2 text-sm font-medium border-b-2 ${
                   isActive('/vehicles') || location.pathname.startsWith('/vehicles/') 
@@ -81,7 +81,7 @@ const Navbar: React.FC = () => {
               >
                 <Car size={16} className="mr-1.5" />
                 Vehículos
-              </Link>
+              </Link> */}
               
               <Link 
                 to="/users" 
