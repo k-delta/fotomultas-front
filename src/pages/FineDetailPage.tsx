@@ -65,7 +65,7 @@ const FineDetailPage: React.FC = () => {
        const promptReason = prompt('Por favor, ingrese el motivo de la cancelación:');
       if (promptReason === null || promptReason.trim() === '') {
         return; // User cancelled or entered empty reason
-      }
+    }
       reason = promptReason.trim();
     } else if (newStatus === FineStateInternal.RESOLVED_APPEAL) {
       reason = 'Apelacion valida';
@@ -73,7 +73,7 @@ const FineDetailPage: React.FC = () => {
        reason = 'Usuario pago';
     }
     // For other statuses, reason remains undefined
-
+    
     await updateFineStatus(id, newStatus, reason);
   };
   

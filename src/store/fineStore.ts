@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { FineWithHistory, FineType, Activity } from '../types/index';
-import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal, getFineStatusLabel } from '../utils/fineUtils';
+import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal } from '../utils/fineUtils';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
@@ -55,45 +55,7 @@ const generateMockFines = (): FineWithHistory[] => {
   });
 };
 
-// Generate some recent activities
-const generateRecentActivities = (fines: FineWithHistory[]): Activity[] => {
-  return fines
-    .slice(0, 15)
-    .flatMap(fine => {
-      const activities: Activity[] = [];
-      
-      activities.push({
-        id: `A${Math.random().toString().substring(2, 10)}`,
-        type: 'fine_registered',
-        fineId: fine.id,
-        plateNumber: fine.plateNumber,
-        timestamp: fine.timestamp,
-        description: `Multa ${fine.id} registrada para placa ${fine.plateNumber}`
-      });
-      
-      if (fine.currentState !== FineStateInternal.PENDING) {
-        const latestChange = fine.statusHistory[fine.statusHistory.length - 1];
-        
-        activities.push({
-          id: `A${Math.random().toString().substring(2, 10)}`,
-          type: fine.currentState === FineStateInternal.PAID 
-            ? 'fine_paid' 
-            : (fine.currentState === FineStateInternal.APPEALED ? 'fine_appealed' : 'status_change'),
-          fineId: fine.id,
-          plateNumber: fine.plateNumber,
-          timestamp: latestChange.timestamp,
-          description: `Multa ${fine.id} marcada como ${getFineStatusLabel(fine.currentState)}`
-        });
-      }
-      
-      return activities;
-    })
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 10);
-};
-
 const mockFines = generateMockFines();
-const mockActivities = generateRecentActivities(mockFines);
 
 interface FineStore {
   fines: FineWithHistory[];
@@ -113,7 +75,7 @@ interface FineStore {
 export const useFineStore = create<FineStore>((set, get) => ({
   fines: mockFines,
   selectedFine: null,
-  activities: mockActivities,
+  activities: [],
   isLoading: false,
   error: null,
   
@@ -327,11 +289,25 @@ export const useFineStore = create<FineStore>((set, get) => ({
   getActivities: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      // TODO: Implement real API call to get recent activities
-      return get().activities; // Returning mock activities for now
+      const response = await fetch('/api/fines/status-history', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar actividades recientes');
+      }
+
+      const result = await response.json();
+      // Assuming the API returns an array of activities directly in the response body
+      const fetchedActivities: Activity[] = result; 
+
+      set({ activities: fetchedActivities });
+      return fetchedActivities;
     } catch (error) {
+      console.error('Error al cargar actividades recientes:', error);
       set({ error: 'Error al cargar actividades recientes' });
       return [];
     } finally {

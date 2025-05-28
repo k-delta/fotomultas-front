@@ -37,7 +37,7 @@ const FineList: React.FC<FineListProps> = ({
   const filterFines = () => {
     return fines.filter(fine => {
       // Apply status filter
-      if (statusFilter !== 'all' && fine.status !== statusFilter) {
+      if (statusFilter !== 'all' && fine.currentState !== statusFilter) {
         return false;
       }
       
@@ -46,7 +46,7 @@ const FineList: React.FC<FineListProps> = ({
         const query = searchQuery.toLowerCase();
         return (
           fine.id.toLowerCase().includes(query) ||
-          fine.plate.toLowerCase().includes(query)
+          fine.plateNumber.toLowerCase().includes(query)
         );
       }
       
@@ -66,7 +66,7 @@ const FineList: React.FC<FineListProps> = ({
           comparison = a.cost - b.cost;
           break;
         case 'plate':
-          comparison = a.plate.localeCompare(b.plate);
+          comparison = a.plateNumber.localeCompare(b.plateNumber);
           break;
       }
       
