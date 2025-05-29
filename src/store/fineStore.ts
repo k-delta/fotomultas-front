@@ -301,7 +301,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
             : fine
         )
       }));
-
+await get().getFines();
     } catch (error) {
       console.error('Error updating fine status:', error);
       set({ error: 'Error al actualizar el estado de la multa' });
