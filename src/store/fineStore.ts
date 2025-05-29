@@ -70,6 +70,7 @@ interface FineStore {
   updateFineStatus: (id: string, newState: FineStateInternal, reason?: string) => Promise<void>;
   getActivities: () => Promise<Activity[]>;
   verifyFineIntegrity: (id: string) => Promise<{ blockchain: boolean }>;
+  getStatusHistory: (id: string) => Promise<any[]>;
 }
 
 export const useFineStore = create<FineStore>((set, get) => ({
@@ -364,6 +365,27 @@ export const useFineStore = create<FineStore>((set, get) => ({
       };
     } finally {
       set({ isLoading: false });
+    }
+  },
+  
+  getStatusHistory: async (id: string) => {
+    try {
+      const response = await fetch(`/api/fines/${id}/status-history`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al cargar el historial de estados');
+      }
+
+      const statusHistory = await response.json();
+      return statusHistory;
+    } catch (error) {
+      console.error('Error fetching status history:', error);
+      throw error;
     }
   }
 }));

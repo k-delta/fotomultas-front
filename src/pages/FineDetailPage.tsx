@@ -17,24 +17,44 @@ import Card from '../components/ui/Card';
 import StatusHistoryList from '../components/fines/StatusHistoryList';
 import VerificationResults from '../components/fines/VerificationResults';
 
+// Get API URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const FineDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { 
     getFineById, 
     updateFineStatus, 
-    verifyFineIntegrity, 
+    verifyFineIntegrity,
+    getStatusHistory,
     selectedFine, 
     isLoading 
   } = useFineStore();
   
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResults, setVerificationResults] = useState<{ blockchain: boolean } | null>(null);
+  const [statusHistory, setStatusHistory] = useState<any[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   useEffect(() => {
     if (id) {
       getFineById(id);
+      fetchStatusHistory();
     }
   }, [id, getFineById]);
+
+  const fetchStatusHistory = async () => {
+    if (!id) return;
+    setIsLoadingHistory(true);
+    try {
+      const history = await getStatusHistory(id);
+      setStatusHistory(history);
+    } catch (error) {
+      console.error('Error fetching status history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
   
   const handleVerify = async () => {
     if (!id) return;
@@ -164,7 +184,7 @@ const FineDetailPage: React.FC = () => {
                 </p>
                 <div className="mt-4">
                   <a 
-                    href={`https://ipfs.io/ipfs/${selectedFine.evidenceCID}`} 
+                    href={`${API_URL}/api/fines/${selectedFine.evidenceCID}/evidence`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -213,6 +233,42 @@ const FineDetailPage: React.FC = () => {
                 <VerificationResults 
                   blockchain={verificationResults.blockchain}
                 />
+              </div>
+            )}
+          </Card>
+          
+          <Card title="Historial de estados">
+            {isLoadingHistory ? (
+              <div className="flex justify-center items-center h-32">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-700"></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {statusHistory.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">No hay historial de estados disponible</p>
+                ) : (
+                  statusHistory.map((status, index) => (
+                    <div key={index} className="flex items-center justify-between border-b border-gray-200 pb-3 last:border-0">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {getFineStatusLabel(status.currentState as FineStateInternal)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {formatDate(status.timestamp)}
+                        </p>
+                        {status.reason && (
+                          <p className="text-xs text-gray-600 mt-1">
+                            Razón: {status.reason}
+                          </p>
+                        )}
+                      </div>
+                      <StatusBadge 
+                        status={getFineStatusLabel(status.currentState as FineStateInternal)} 
+                        color={getFineStatusColor(status.currentState as FineStateInternal) as 'success' | 'warning' | 'error' | 'info' | 'default'} 
+                      />
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </Card>
