@@ -21,6 +21,14 @@ const StatusHistoryList: React.FC<StatusHistoryListProps> = ({ history }) => {
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
   
+  if (sortedHistory.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-sm text-gray-500">No hay historial de cambios disponible</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="flow-root">
       <ul className="-mb-8">

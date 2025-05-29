@@ -313,7 +313,7 @@ await get().getFines();
   getActivities: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/fines/status-history', {
+      const response = await fetch('/api/fines/recent-history', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -326,7 +326,7 @@ await get().getFines();
 
       const result = await response.json();
       // Assuming the API returns an array of activities directly in the response body
-      const fetchedActivities: Activity[] = result; 
+      const fetchedActivities: Activity[] = result.data; 
 
       set({ activities: fetchedActivities });
       return fetchedActivities;
@@ -381,11 +381,12 @@ await get().getFines();
         throw new Error('Error al cargar el historial de estados');
       }
 
-      const statusHistory = await response.json();
-      return statusHistory;
+      const data = await response.json();
+      // Asegurarnos de que la respuesta sea un array
+      return Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
     } catch (error) {
       console.error('Error fetching status history:', error);
-      throw error;
+      return []; // En caso de error, devolver un array vacío
     }
   }
 }));

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Clock } from 'lucide-react';
 import { Activity } from '../../types';
-import { formatDate } from '../../utils/fineUtils';
+import { formatDate, getStatusColorClasses, getFineStatusLabel } from '../../utils/fineUtils';
 
 interface ActivityFeedProps {
   activities: Activity[];
@@ -21,7 +21,7 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
     <div className="flow-root">
       <ul className="-mb-8">
         {activities.map((activity, activityIdx) => (
-          <li key={activity.id}>
+          <li key={activityIdx}>
             <div className="relative pb-8">
               {activityIdx !== activities.length - 1 ? (
                 <span
@@ -35,19 +35,27 @@ const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
                     <FileText className="h-5 w-5 text-blue-700" />
                   </div>
                 </div>
+                
                 <div className="min-w-0 flex-1 py-1.5">
                   <div className="text-sm text-gray-500">
                     <Link
                       to={`/fines/${activity.fineId}`}
                       className="font-medium text-gray-900 hover:text-blue-700"
                     >
-                      {activity.description}
+                      {activity.reason}
                     </Link>
                   </div>
                   <div className="mt-1 flex items-center text-sm text-gray-500">
                     <Clock className="mr-1.5 h-4 w-4 text-gray-400" />
                     <span>{formatDate(activity.timestamp)}</span>
                   </div>
+                  <div className="">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(activity.status)}`}
+                      >
+                        {getFineStatusLabel(activity.status)}
+                      </span>
+                    </div>
                 </div>
               </div>
             </div>

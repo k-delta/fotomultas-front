@@ -66,10 +66,10 @@ export type Metric = {
 };
 
 export type Activity = {
-  id: string;
-  type: 'fine_registered' | 'fine_paid' | 'fine_appealed' | 'status_change';
+  id?: string;
   fineId: string;
   plateNumber: string;
+  reason: string;
+  status: number;
   timestamp: string;
-  description: string;
 };

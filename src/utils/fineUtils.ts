@@ -1,4 +1,4 @@
-import { Fine, FineType, FineWithHistory, StatusChange } from '../types';
+import { FineType, FineWithHistory, StatusChange } from '../types';
 
 export enum FineStateInternal {
     PENDING = 0,

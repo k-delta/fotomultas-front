@@ -16,6 +16,7 @@ import StatusBadge from '../components/ui/StatusBadge';
 import Card from '../components/ui/Card';
 import StatusHistoryList from '../components/fines/StatusHistoryList';
 import VerificationResults from '../components/fines/VerificationResults';
+import { StatusChange } from '../types';
 
 // Get API URL from environment variable
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -33,7 +34,7 @@ const FineDetailPage: React.FC = () => {
   
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResults, setVerificationResults] = useState<{ blockchain: boolean } | null>(null);
-  const [statusHistory, setStatusHistory] = useState<any[]>([]);
+  const [statusHistory, setStatusHistory] = useState<StatusChange[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   useEffect(() => {
@@ -48,9 +49,10 @@ const FineDetailPage: React.FC = () => {
     setIsLoadingHistory(true);
     try {
       const history = await getStatusHistory(id);
-      setStatusHistory(history);
+      setStatusHistory(Array.isArray(history) ? history : []);
     } catch (error) {
       console.error('Error fetching status history:', error);
+      setStatusHistory([]);
     } finally {
       setIsLoadingHistory(false);
     }
@@ -244,7 +246,7 @@ const FineDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {statusHistory.length === 0 ? (
+                {!Array.isArray(statusHistory) || statusHistory.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">No hay historial de estados disponible</p>
                 ) : (
                   statusHistory.map((status, index) => (
@@ -330,7 +332,7 @@ const FineDetailPage: React.FC = () => {
           )}
           
           <Card title="Historial de cambios">
-            <StatusHistoryList history={selectedFine.statusHistory} />
+            <StatusHistoryList history={selectedFine?.statusHistory || []} />
           </Card>
         </div>
       </div>

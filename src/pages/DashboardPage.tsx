@@ -204,9 +204,6 @@ const DashboardPage: React.FC = () => {
                         <p className="text-sm font-medium text-gray-900">
                           Multa {fine.id} - Placa {fine.plateNumber}
                         </p>
-                        {/* <p className="text-xs text-gray-500">
-                          {fine.city} • {new Date(fine.timestamp).toLocaleDateString()}
-                        </p> */}
                       </div>
                     </div>
                     <div className="ml-2">
