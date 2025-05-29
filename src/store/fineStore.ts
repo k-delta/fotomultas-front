@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { FineWithHistory, FineType, Activity } from '../types/index';
-import { generateTransactionId, generateIpfsCid, addStatusChange, FineStateInternal } from '../utils/fineUtils';
+import { generateTransactionId, generateIpfsCid, FineStateInternal } from '../utils/fineUtils';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
@@ -67,7 +67,7 @@ interface FineStore {
   getFines: () => Promise<FineWithHistory[]>;
   getFineById: (id: string) => Promise<void>;
   createFine: (formData: FormData) => Promise<FineWithHistory>;
-  updateFineStatus: (id: string, status: FineStateInternal, reason?: string) => Promise<void>;
+  updateFineStatus: (id: string, newState: FineStateInternal, reason?: string) => Promise<void>;
   getActivities: () => Promise<Activity[]>;
   verifyFineIntegrity: (id: string) => Promise<{ blockchain: boolean }>;
 }
@@ -104,7 +104,6 @@ export const useFineStore = create<FineStore>((set, get) => ({
         plateNumber: apiFine.plateNumber,
         timestamp: apiFine.timestamp,
         location: apiFine.location,
-        city: apiFine.city,
         infractionType: apiFine.infractionType,
         currentState: ((): FineStateInternal => {
           switch (apiFine.currentState) {
@@ -118,7 +117,6 @@ export const useFineStore = create<FineStore>((set, get) => ({
         })(),
         cost: parseInt(apiFine.cost, 10),
         ownerIdentifier: apiFine.ownerIdentifier,
-        ownerName: apiFine.ownerName,
         registeredBy: apiFine.registeredBy,
         statusHistory: []
       }));
@@ -240,47 +238,72 @@ export const useFineStore = create<FineStore>((set, get) => ({
     }
   },
   
-  updateFineStatus: async (id: string, status: FineStateInternal, reason?: string) => {
+  updateFineStatus: async (id: string, newState: FineStateInternal, reason?: string) => {
     set({ isLoading: true, error: null });
     try {
-      let finalReason = reason;
-      if (status === FineStateInternal.PAID && (reason === null || reason === undefined)) {
-        finalReason = 'Usuario pago';
-      }
+      // Determinar el estado final basado en la resolución de la apelación
+      let finalState = newState;
 
       const response = await fetch(`/api/fines/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          newState: status, // Use the numerical enum value
-          reason: finalReason
-        }),
+        body: JSON.stringify({ newState: finalState, reason }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al actualizar estado de multa');
+        throw new Error('Error al actualizar el estado de la multa');
       }
 
-      // Update local state with the new status
-      set(state => ({
-        fines: state.fines.map(fine => {
-          if (fine.id === id) {
-            // Reuse addStatusChange to immutably update the fine object
-            return addStatusChange(fine, status, reason);
-          }
-          return fine;
-        }),
-        selectedFine: state.selectedFine && state.selectedFine.id === id 
-          ? addStatusChange(state.selectedFine, status, reason) 
-          : state.selectedFine,
-      }));
+      const updatedFine = await response.json();
       
+      // Actualizar selectedFine si existe
+      set(state => {
+        if (state.selectedFine?.id === id) {
+          return {
+            selectedFine: {
+              ...state.selectedFine,
+              currentState: finalState,
+              statusHistory: [
+                ...state.selectedFine.statusHistory,
+                {
+                  timestamp: new Date().toISOString(),
+                  currentState: finalState,
+                  transactionId: generateTransactionId(),
+                  reason
+                }
+              ]
+            }
+          };
+        }
+        return {};
+      });
+
+      // Actualizar el array de fines
+      set(state => ({
+        fines: state.fines.map(fine => 
+          fine.id === id 
+            ? {
+                ...fine,
+                currentState: finalState,
+                statusHistory: [
+                  ...fine.statusHistory,
+                  {
+                    timestamp: new Date().toISOString(),
+                    currentState: finalState,
+                    transactionId: generateTransactionId(),
+                    reason
+                  }
+                ]
+              }
+            : fine
+        )
+      }));
+
     } catch (error) {
       console.error('Error updating fine status:', error);
-      set({ error: `Error al actualizar estado de multa: ${error instanceof Error ? error.message : 'Unknown error'}` });
+      set({ error: 'Error al actualizar el estado de la multa' });
     } finally {
       set({ isLoading: false });
     }
