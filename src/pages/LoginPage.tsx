@@ -10,8 +10,11 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
 
   // If already authenticated, redirect to dashboard
-  if (isAuthenticated) {
+  if (isAuthenticated && email.includes('admin')) {
     return <Navigate to="/" replace />;
+  }
+  else if (isAuthenticated && email.includes('user')) {
+    return <Navigate to="/consult" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

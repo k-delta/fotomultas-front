@@ -20,6 +20,16 @@ const mockAdminUser: User = {
   createdAt: new Date().toISOString()
 };
 
+// Mock user data for demonstration
+const mockUser: User = {
+  id: '1',
+  name: 'Usuario1',
+  email: 'user@example.com',
+  role: 'viewer',
+  createdAt: new Date().toISOString()
+};
+
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
@@ -39,7 +49,13 @@ export const useAuthStore = create<AuthState>((set) => ({
           isAuthenticated: true,
           isLoading: false 
         });
-      } else {
+      } else if(email.includes('user')) {
+                set({ 
+          user: mockUser,
+          isAuthenticated: true,
+          isLoading: false 
+        });
+      } else{
         throw new Error('Credenciales inválidas');
       }
     } catch (error) {
