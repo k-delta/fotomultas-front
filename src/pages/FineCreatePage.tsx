@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Card from '../components/ui/Card';
 import FineForm from '../components/fines/FineForm';
+import { API_URL } from '../utils/env';
 
 const FineCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const FineCreatePage: React.FC = () => {
         }
       });
 
-      const response = await fetch(`/api/fines`, {
+      const response = await fetch(`${API_URL}/api/fines`, {
         method: 'POST',
         body: form
       });

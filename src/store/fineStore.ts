@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { FineWithHistory, FineType, Activity } from '../types/index';
 import { generateTransactionId, generateIpfsCid, FineStateInternal } from '../utils/fineUtils';
+import { API_URL } from '../utils/env';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
@@ -83,7 +84,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
   getFines: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/fines', {
+      const response = await fetch(`${API_URL}/api/fines`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -136,7 +137,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
   getFineById: async (id: string) => {
     set({ isLoading: true });
     try {
-      const response = await fetch(`/api/fines/${id}`, {
+      const response = await fetch(`${API_URL}/api/fines/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +246,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
       // Determinar el estado final basado en la resolución de la apelación
       let finalState = newState;
 
-      const response = await fetch(`/api/fines/${id}/status`, {
+      const response = await fetch(`${API_URL}/api/fines/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -313,7 +314,7 @@ await get().getFines();
   getActivities: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch('/api/fines/recent-history', {
+      const response = await fetch(`${API_URL}/api/fines/recent-history`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -342,7 +343,7 @@ await get().getFines();
   verifyFineIntegrity: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`/fines/${id}/integrity`, {
+      const response = await fetch(`${API_URL}/fines/${id}/integrity`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -370,7 +371,7 @@ await get().getFines();
   
   getStatusHistory: async (id: string) => {
     try {
-      const response = await fetch(`/api/fines/${id}/status-history`, {
+      const response = await fetch(`${API_URL}/api/fines/${id}/status-history`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

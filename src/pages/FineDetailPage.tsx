@@ -17,9 +17,7 @@ import Card from '../components/ui/Card';
 import StatusHistoryList from '../components/fines/StatusHistoryList';
 import VerificationResults from '../components/fines/VerificationResults';
 import { StatusChange } from '../types';
-
-// Get API URL from environment variable
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { API_URL } from '../utils/env';
 
 const FineDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
