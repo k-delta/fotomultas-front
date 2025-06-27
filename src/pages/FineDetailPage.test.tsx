@@ -14,7 +14,7 @@ jest.mock('../store/fineStore', () => ({
       evidenceCID: 'Qm123',
       location: 'Calle 1',
       timestamp: '2024-07-01T10:00:00Z',
-      infractionType: 'speeding',
+      infractionType: 'EXCESO_VELOCIDAD',
       cost: 200000,
       ownerIdentifier: 'U1',
       currentState: 0,

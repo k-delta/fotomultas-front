@@ -1,6 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import FineForm from './FineForm';
-import { FineType } from '../../types';
 
 describe('FineForm', () => {
   const onSubmit = jest.fn().mockResolvedValue(undefined);
@@ -23,12 +22,12 @@ describe('FineForm', () => {
     render(<FineForm onSubmit={onSubmit} isLoading={false} />);
     fireEvent.change(screen.getByLabelText(/placa/i), { target: { value: 'ABC123' } });
     fireEvent.change(screen.getByLabelText(/ubicación/i), { target: { value: 'Calle 1' } });
-    fireEvent.change(screen.getByLabelText(/tipo de infracción/i), { target: { value: 'red_light' } });
+    fireEvent.change(screen.getByLabelText(/tipo de infracción/i), { target: { value: 'SEMAFORO_ROJO' } });
     fireEvent.change(screen.getByLabelText(/monto/i), { target: { value: '50000' } });
     fireEvent.change(screen.getByLabelText(/id del propietario/i), { target: { value: 'U1' } });
     expect(screen.getByDisplayValue('ABC123')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Calle 1')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('red_light')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('SEMAFORO_ROJO')).toBeInTheDocument();
     expect(screen.getByDisplayValue('50000')).toBeInTheDocument();
     expect(screen.getByDisplayValue('U1')).toBeInTheDocument();
   });
@@ -37,7 +36,7 @@ describe('FineForm', () => {
     render(<FineForm onSubmit={onSubmit} isLoading={false} />);
     fireEvent.change(screen.getByLabelText(/placa/i), { target: { value: 'ABC123' } });
     fireEvent.change(screen.getByLabelText(/ubicación/i), { target: { value: 'Calle 1' } });
-    fireEvent.change(screen.getByLabelText(/tipo de infracción/i), { target: { value: 'red_light' } });
+    fireEvent.change(screen.getByLabelText(/tipo de infracción/i), { target: { value: 'SEMAFORO_ROJO' } });
     fireEvent.change(screen.getByLabelText(/monto/i), { target: { value: '50000' } });
     fireEvent.change(screen.getByLabelText(/id del propietario/i), { target: { value: 'U1' } });
     // Mock file input
@@ -49,7 +48,7 @@ describe('FineForm', () => {
       expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({
         plateNumber: 'ABC123',
         location: 'Calle 1',
-        infractionType: 'red_light',
+        infractionType: 'SEMAFORO_ROJO',
         cost: 50000,
         ownerIdentifier: 'U1',
         evidenceFile: file

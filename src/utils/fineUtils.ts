@@ -53,12 +53,11 @@ export const formatDate = (dateString: string | number | null | undefined): stri
 // Get label for fine type
 export const getFineTypeLabel = (type: FineType): string => {
   switch (type) {
-    case 'speeding': return 'Exceso de velocidad';
-    case 'red_light': return 'Semáforo en rojo';
-    case 'illegal_parking': return 'Estacionamiento ilegal';
-    case 'no_documents': return 'Sin documentos';
-    case 'driving_under_influence': return 'Conducción bajo influencia';
-    case 'other': return 'Otra infracción';
+    case 'EXCESO_VELOCIDAD': return 'Exceso de velocidad';
+    case 'SEMAFORO_ROJO': return 'Semáforo en rojo';
+    case 'SOAT_VENCIDO': return 'Estacionamiento ilegal';
+    case 'TECNOMECANICA_VENCIDA': return 'Sin documentos';
+    case 'OTRO': return 'Otra infracción';
     default: return 'Desconocido';
   }
 };

@@ -5,10 +5,10 @@ import { FineStateInternal } from '../../utils/fineUtils';
 
 describe('StatusChart', () => {
   const fines: FineWithHistory[] = [
-    { id: 'F1', plateNumber: 'A', evidenceCID: '', location: '', timestamp: '', infractionType: 'speeding', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PENDING, statusHistory: [] },
-    { id: 'F2', plateNumber: 'B', evidenceCID: '', location: '', timestamp: '', infractionType: 'speeding', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PAID, statusHistory: [] },
-    { id: 'F3', plateNumber: 'C', evidenceCID: '', location: '', timestamp: '', infractionType: 'speeding', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PAID, statusHistory: [] },
-    { id: 'F4', plateNumber: 'D', evidenceCID: '', location: '', timestamp: '', infractionType: 'speeding', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.APPEALED, statusHistory: [] },
+    { id: 'F1', plateNumber: 'A', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PENDING, statusHistory: [] },
+    { id: 'F2', plateNumber: 'B', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PAID, statusHistory: [] },
+    { id: 'F3', plateNumber: 'C', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PAID, statusHistory: [] },
+    { id: 'F4', plateNumber: 'D', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.APPEALED, statusHistory: [] },
   ];
 
   it('renderiza el gráfico de estados', () => {

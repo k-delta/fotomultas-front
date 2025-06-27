@@ -12,7 +12,7 @@ describe('FineCard', () => {
     location: 'Calle 1',
     ownerIdentifier: 'U1',
     evidenceCID: 'Qm123',
-    infractionType: 'speeding',
+    infractionType: 'EXCESO_VELOCIDAD',
     currentState: 0,
     transactionId: 'tx1',
     registeredBy: 'admin',

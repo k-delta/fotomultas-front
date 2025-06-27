@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
-import FinesPage from './FinesPage';
+import FinesPage from '../pages/FinesPage';
 import { BrowserRouter } from 'react-router-dom';
 
 jest.mock('../store/fineStore', () => ({
   useFineStore: () => ({
     getFines: jest.fn(),
     fines: [
-      { id: 'F1', plateNumber: 'ABC123', evidenceCID: '', location: '', timestamp: '', infractionType: 'speeding', cost: 1000, ownerIdentifier: '', currentState: 0, statusHistory: [] }
+      { id: 'F1', plateNumber: 'ABC123', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1000, ownerIdentifier: '', currentState: 0, statusHistory: [] }
     ],
     isLoading: false
   })

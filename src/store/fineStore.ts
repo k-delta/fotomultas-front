@@ -5,7 +5,7 @@ import { API_URL } from '../utils/env';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
-  const fineTypes: FineType[] = ['speeding', 'red_light', 'illegal_parking', 'no_documents', 'driving_under_influence', 'other'];
+  const fineTypes: FineType[] = ['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'SOAT_VENCIDO', 'TECNOMECANICA_VENCIDA', 'OTRO'];
   const statuses: FineStateInternal[] = [FineStateInternal.PENDING, FineStateInternal.PAID, FineStateInternal.APPEALED, FineStateInternal.RESOLVED_APPEAL, FineStateInternal.CANCELLED];
   
   return Array.from({ length: 50 }, (_, i) => {
@@ -218,11 +218,11 @@ export const useFineStore = create<FineStore>((set, get) => ({
       
       const newActivity: Activity = {
         id: `A${Math.random().toString().substring(2, 10)}`,
-        type: 'fine_registered',
         fineId: newFine.id,
         plateNumber: newFine.plateNumber,
         timestamp: new Date().toISOString(),
-        description: `Multa ${newFine.id} registrada para placa ${newFine.plateNumber}`
+        reason: `Multa ${newFine.id} registrada para placa ${newFine.plateNumber}`,
+        status: FineStateInternal.PENDING,
       };
       
       set(state => ({

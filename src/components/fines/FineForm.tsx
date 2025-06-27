@@ -21,7 +21,7 @@ interface FineFormProps {
 const initialFormData: FineFormData = {
   plateNumber: '',
   location: '',
-  infractionType: 'speeding',
+  infractionType: 'EXCESO_VELOCIDAD',
   cost: 0,
   ownerIdentifier: '',
   evidenceFile: null
@@ -108,7 +108,7 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
             value={formData.infractionType}
             onChange={handleChange}
           >
-            {['speeding', 'red_light', 'illegal_parking', 'no_documents', 'driving_under_influence', 'other'].map(type => (
+            {['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'SOAT_VENCIDO', 'TECNOMECANICA_VENCIDA', 'OTRO'].map(type => (
               <option key={type} value={type}>
                 {getFineTypeLabel(type as FineType)}
               </option>

@@ -19,15 +19,14 @@ export type Vehicle = {
   inspectionStatus: 'valid' | 'expired' | 'pending';
 };
 
-export type FineType = 
-  | 'speeding'
-  | 'red_light'
-  | 'illegal_parking'
-  | 'no_documents'
-  | 'driving_under_influence'
-  | 'other';
+export type FineType =
+  'EXCESO_VELOCIDAD'
+  | 'SEMAFORO_ROJO'
+  | 'SOAT_VENCIDO'
+  | 'TECNOMECANICA_VENCIDA'
+  | 'OTRO';
 
-export type FineStatus = 
+export type FineStatus =
   | 'PENDING'
   | 'PAID'
   | 'APPEALED'
