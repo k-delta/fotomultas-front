@@ -1,8 +1,19 @@
+/**
+ * @fileoverview Tests unitarios para el componente ActivityFeed
+ * @description Verifica renderizado de feed de actividades, enlaces y estados vacíos
+ * @see src/components/dashboard/ActivityFeed.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import ActivityFeed from './ActivityFeed';
 import { BrowserRouter } from 'react-router-dom';
 import { Activity } from '../../types';
 
+/**
+ * @suite ActivityFeed Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente ActivityFeed
+ * @covers ActivityFeed renderizado, feed de actividades, enlaces y estados vacíos
+ */
 describe('ActivityFeed', () => {
   const activities: Activity[] = [
     {

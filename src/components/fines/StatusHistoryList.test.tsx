@@ -1,7 +1,18 @@
+/**
+ * @fileoverview Tests unitarios para el componente StatusHistoryList
+ * @description Verifica renderizado de historial de cambios de estado, ordenamiento y estados vacíos
+ * @see src/components/fines/StatusHistoryList.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import StatusHistoryList from './StatusHistoryList';
 import { StatusChange } from '../../types';
 
+/**
+ * @suite StatusHistoryList Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente StatusHistoryList
+ * @covers StatusHistoryList renderizado, historial, ordenamiento y estados vacíos
+ */
 describe('StatusHistoryList', () => {
   const history: StatusChange[] = [
     {

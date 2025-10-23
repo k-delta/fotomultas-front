@@ -1,7 +1,17 @@
+/**
+ * @fileoverview Test de integración para el flujo de Login a Dashboard
+ * @description Verifica el flujo completo de autenticación desde login hasta redirección al dashboard
+ * @see src/App.tsx
+ */
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import App from '../../App';
 import { MemoryRouter } from 'react-router-dom';
 
+/**
+ * @mock Mock del store de usuario
+ * @description Simula un usuario no autenticado que puede hacer login exitosamente
+ */
 jest.mock('../../store/userStore', () => ({
   useUserStore: () => ({
     isLoggedIn: false,
@@ -10,6 +20,11 @@ jest.mock('../../store/userStore', () => ({
   }),
 }));
 
+/**
+ * @test Flujo de login a dashboard
+ * @description Verifica que el usuario puede hacer login y es redirigido al dashboard
+ * @expected Después del login exitoso, debe aparecer el dashboard
+ */
 test('login flow redirects to dashboard', async () => {
   render(
     <MemoryRouter initialEntries={['/login']}>

@@ -1,8 +1,19 @@
+/**
+ * @fileoverview Tests unitarios para el componente StatusChart
+ * @description Verifica renderizado de gráfico de estados, datos y tooltips
+ * @see src/components/dashboard/StatusChart.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import StatusChart from './StatusChart';
 import { FineWithHistory } from '../../types';
 import { FineStateInternal } from '../../utils/fineUtils';
 
+/**
+ * @suite StatusChart Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente StatusChart
+ * @covers StatusChart renderizado, gráfico de estados, datos y categorización
+ */
 describe('StatusChart', () => {
   const fines: FineWithHistory[] = [
     { id: 'F1', plateNumber: 'A', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: FineStateInternal.PENDING, statusHistory: [] },

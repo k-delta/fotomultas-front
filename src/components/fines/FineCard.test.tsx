@@ -1,8 +1,19 @@
+/**
+ * @fileoverview Tests unitarios para el componente FineCard
+ * @description Verifica renderizado de tarjeta de multa, estados y navegación
+ * @see src/components/fines/FineCard.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import FineCard from './FineCard';
 import { BrowserRouter } from 'react-router-dom';
 import { Fine } from '../../types';
 
+/**
+ * @suite FineCard Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente FineCard
+ * @covers FineCard renderizado, estados, navegación y acciones
+ */
 describe('FineCard', () => {
   const baseFine: Fine = {
     id: 'F001',

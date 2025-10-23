@@ -1,7 +1,18 @@
+/**
+ * @fileoverview Tests unitarios para el componente TypeChart
+ * @description Verifica renderizado de gráfico de tipos de infracción y categorización
+ * @see src/components/dashboard/TypeChart.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import TypeChart from './TypeChart';
 import { FineWithHistory } from '../../types';
 
+/**
+ * @suite TypeChart Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente TypeChart
+ * @covers TypeChart renderizado, gráfico de tipos y categorización de infracciones
+ */
 describe('TypeChart', () => {
   const fines: FineWithHistory[] = [
     { id: 'F1', plateNumber: 'A', evidenceCID: '', location: '', timestamp: '', infractionType: 'EXCESO_VELOCIDAD', cost: 1, ownerIdentifier: '', currentState: 0, statusHistory: [] },

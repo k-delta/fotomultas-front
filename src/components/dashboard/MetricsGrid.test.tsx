@@ -1,7 +1,18 @@
+/**
+ * @fileoverview Tests unitarios para el componente MetricsGrid
+ * @description Verifica renderizado de métricas, formateo de números y cambios porcentuales
+ * @see src/components/dashboard/MetricsGrid.tsx
+ */
+
 import { render, screen } from '@testing-library/react';
 import MetricsGrid from './MetricsGrid';
 import { Metric } from '../../types';
 
+/**
+ * @suite MetricsGrid Component Tests
+ * @description Suite de pruebas para verificar todas las funcionalidades del componente MetricsGrid
+ * @covers MetricsGrid renderizado, métricas, formateo y cambios porcentuales
+ */
 describe('MetricsGrid', () => {
   const metrics: Metric[] = [
     { label: 'Total Multas', value: 10, change: 5.2 },
