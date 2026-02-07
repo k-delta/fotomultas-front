@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, Filter, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FineWithHistory } from '../../types';
 import { formatCurrency, formatDate, getFineTypeLabel, getFineStatusLabel, getFineStatusColor, FineStateInternal } from '../../utils/fineUtils';
 import StatusBadge from '../ui/StatusBadge';
@@ -7,17 +7,28 @@ import SearchInput from '../ui/SearchInput';
 import Button from '../ui/Button';
 import { Link } from 'react-router-dom';
 
+interface PaginationInfo {
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 interface FineListProps {
   fines: FineWithHistory[];
   isLoading?: boolean;
+  pagination?: PaginationInfo;
+  onPageChange?: (page: number) => void;
 }
 
 type SortField = 'timestamp' | 'cost' | 'plate';
 type SortDirection = 'asc' | 'desc';
 
-const FineList: React.FC<FineListProps> = ({ 
+const FineList: React.FC<FineListProps> = ({
   fines,
-  isLoading = false
+  isLoading = false,
+  pagination,
+  onPageChange
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<FineStateInternal | 'all'>('all');
@@ -240,6 +251,51 @@ const FineList: React.FC<FineListProps> = ({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+          <p className="text-sm text-gray-700">
+            Mostrando <span className="font-medium">{(pagination.currentPage - 1) * pagination.pageSize + 1}</span> a{' '}
+            <span className="font-medium">{Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)}</span> de{' '}
+            <span className="font-medium">{pagination.totalItems}</span> multas
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onPageChange?.(pagination.currentPage - 1)}
+              disabled={pagination.currentPage <= 1}
+              className="p-2 rounded-md border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+              .filter(p => p === 1 || p === pagination.totalPages || Math.abs(p - pagination.currentPage) <= 1)
+              .map((p, idx, arr) => (
+                <React.Fragment key={p}>
+                  {idx > 0 && arr[idx - 1] !== p - 1 && (
+                    <span className="text-gray-400">...</span>
+                  )}
+                  <button
+                    onClick={() => onPageChange?.(p)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      p === pagination.currentPage
+                        ? 'bg-blue-700 text-white'
+                        : 'border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                </React.Fragment>
+              ))}
+            <button
+              onClick={() => onPageChange?.(pagination.currentPage + 1)}
+              disabled={pagination.currentPage >= pagination.totalPages}
+              className="p-2 rounded-md border border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>

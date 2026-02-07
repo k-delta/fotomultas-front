@@ -22,8 +22,12 @@ export type Vehicle = {
 export type FineType =
   'EXCESO_VELOCIDAD'
   | 'SEMAFORO_ROJO'
-  | 'SOAT_VENCIDO'
-  | 'TECNOMECANICA_VENCIDA'
+  | 'ESTACIONAMIENTO_PROHIBIDO'
+  | 'CONDUCIR_EMBRIAGADO'
+  | 'NO_RESPETAR_PASO_PEATONAL'
+  | 'USO_CELULAR'
+  | 'NO_USAR_CINTURON'
+  | 'CONDUCIR_SIN_LICENCIA'
   | 'OTRO';
 
 export type FineStatus =

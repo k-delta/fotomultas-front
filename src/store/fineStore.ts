@@ -5,7 +5,7 @@ import { API_URL } from '../utils/env';
 
 // Sample data for demonstration
 const generateMockFines = (): FineWithHistory[] => {
-  const fineTypes: FineType[] = ['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'SOAT_VENCIDO', 'TECNOMECANICA_VENCIDA', 'OTRO'];
+  const fineTypes: FineType[] = ['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'ESTACIONAMIENTO_PROHIBIDO', 'CONDUCIR_EMBRIAGADO', 'NO_RESPETAR_PASO_PEATONAL', 'USO_CELULAR', 'NO_USAR_CINTURON', 'CONDUCIR_SIN_LICENCIA', 'OTRO'];
   const statuses: FineStateInternal[] = [FineStateInternal.PENDING, FineStateInternal.PAID, FineStateInternal.APPEALED, FineStateInternal.RESOLVED_APPEAL, FineStateInternal.CANCELLED];
   
   return Array.from({ length: 50 }, (_, i) => {
@@ -58,14 +58,22 @@ const generateMockFines = (): FineWithHistory[] => {
 
 const mockFines = generateMockFines();
 
+interface PaginationInfo {
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 interface FineStore {
   fines: FineWithHistory[];
   selectedFine: FineWithHistory | null;
   activities: Activity[];
   isLoading: boolean;
   error: string | null;
-  
-  getFines: () => Promise<FineWithHistory[]>;
+  pagination: PaginationInfo;
+
+  getFines: (page?: number, pageSize?: number) => Promise<FineWithHistory[]>;
   getFineById: (id: string) => Promise<void>;
   createFine: (formData: FormData) => Promise<FineWithHistory>;
   updateFineStatus: (id: string, newState: FineStateInternal, reason?: string) => Promise<void>;
@@ -75,16 +83,17 @@ interface FineStore {
 }
 
 export const useFineStore = create<FineStore>((set, get) => ({
-  fines: mockFines,
+  fines: [],
   selectedFine: null,
   activities: [],
   isLoading: false,
   error: null,
-  
-  getFines: async () => {
+  pagination: { currentPage: 1, pageSize: 10, totalItems: 0, totalPages: 0 },
+
+  getFines: async (page = 1, pageSize = 10) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/api/fines`, {
+      const response = await fetch(`${API_URL}/api/fines?page=${page}&pageSize=${pageSize}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -96,9 +105,8 @@ export const useFineStore = create<FineStore>((set, get) => ({
       }
 
       const result = await response.json();
-      const apiFines = result.data; // Extract the data array
+      const apiFines = result.data;
 
-      // Map API response to frontend FineWithHistory type
       const mappedFines: FineWithHistory[] = apiFines.map((apiFine: any) => ({
         id: apiFine.id,
         transactionId: apiFine.transactionId || generateTransactionId(),
@@ -107,23 +115,19 @@ export const useFineStore = create<FineStore>((set, get) => ({
         timestamp: apiFine.timestamp,
         location: apiFine.location,
         infractionType: apiFine.infractionType,
-        currentState: ((): FineStateInternal => {
-          switch (apiFine.currentState) {
-            case 'pending': return FineStateInternal.PENDING;
-            case 'paid': return FineStateInternal.PAID;
-            case 'appealed': return FineStateInternal.APPEALED;
-            case 'resolved_appeal': return FineStateInternal.RESOLVED_APPEAL;
-            case 'cancelled': return FineStateInternal.CANCELLED;
-            default: return FineStateInternal.PENDING;
-          }
-        })(),
+        currentState: apiFine.currentState in FineStateInternal
+          ? apiFine.currentState as FineStateInternal
+          : FineStateInternal.PENDING,
         cost: parseInt(apiFine.cost, 10),
         ownerIdentifier: apiFine.ownerIdentifier,
         registeredBy: apiFine.registeredBy,
         statusHistory: []
       }));
-      
-      set({ fines: mappedFines });
+
+      set({
+        fines: mappedFines,
+        pagination: result.pagination || { currentPage: page, pageSize, totalItems: mappedFines.length, totalPages: 1 }
+      });
       return mappedFines;
     } catch (error) {
       console.error('Error fetching fines:', error);
@@ -148,7 +152,8 @@ export const useFineStore = create<FineStore>((set, get) => ({
         throw new Error('Error al cargar la multa');
       }
 
-      const fine = await response.json();
+      const result = await response.json();
+      const fine = result.data || result;
       // Map API response to frontend FineWithHistory type
       const mappedFine: FineWithHistory = {
         id: fine.id,
@@ -159,16 +164,9 @@ export const useFineStore = create<FineStore>((set, get) => ({
         infractionType: fine.infractionType,
         cost: parseInt(fine.cost, 10),
         ownerIdentifier: fine.ownerIdentifier,
-        currentState: ((): FineStateInternal => {
-          switch (fine.currentState) {
-            case 'pending': return FineStateInternal.PENDING;
-            case 'paid': return FineStateInternal.PAID;
-            case 'appealed': return FineStateInternal.APPEALED;
-            case 'resolved_appeal': return FineStateInternal.RESOLVED_APPEAL;
-            case 'cancelled': return FineStateInternal.CANCELLED;
-            default: return FineStateInternal.PENDING;
-          }
-        })(),
+        currentState: fine.currentState in FineStateInternal
+          ? fine.currentState as FineStateInternal
+          : FineStateInternal.PENDING,
         registeredBy: fine.registeredBy,
         transactionId: fine.transactionId || generateTransactionId(),
         statusHistory: fine.statusHistory || []
@@ -251,7 +249,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newState: finalState, reason }),
+        body: JSON.stringify({ newState: finalState, reason, updatedBy: 'Admin Usuario' }),
       });
 
       if (!response.ok) {
@@ -302,7 +300,8 @@ export const useFineStore = create<FineStore>((set, get) => ({
             : fine
         )
       }));
-await get().getFines();
+      await get().getFines();
+      await get().getFineById(id);
     } catch (error) {
       console.error('Error updating fine status:', error);
       set({ error: 'Error al actualizar el estado de la multa' });

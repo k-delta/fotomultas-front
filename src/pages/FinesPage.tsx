@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle } from 'lucide-react';
 import { useFineStore } from '../store/fineStore';
@@ -6,11 +6,15 @@ import FineList from '../components/fines/FineList';
 import Button from '../components/ui/Button';
 
 const FinesPage: React.FC = () => {
-  const { getFines, fines, isLoading } = useFineStore();
+  const { getFines, fines, isLoading, pagination } = useFineStore();
 
   useEffect(() => {
-    getFines();
+    getFines(1, 10);
   }, [getFines]);
+
+  const handlePageChange = useCallback((page: number) => {
+    getFines(page, pagination.pageSize);
+  }, [getFines, pagination.pageSize]);
 
   return (
     <div className="space-y-6">
@@ -33,7 +37,12 @@ const FinesPage: React.FC = () => {
         </Link>
       </div>
 
-      <FineList fines={fines} isLoading={isLoading} />
+      <FineList
+        fines={fines}
+        isLoading={isLoading}
+        pagination={pagination}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 };

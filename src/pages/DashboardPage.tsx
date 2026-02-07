@@ -69,13 +69,13 @@ const calculateMonthlyAmountChange = (fines: any[]) => {
 };
 
 const DashboardPage: React.FC = () => {
-  const { getFines, getActivities, fines, activities, isLoading } = useFineStore();
+  const { getFines, getActivities, fines, activities, isLoading, pagination } = useFineStore();
   const [metrics, setMetrics] = useState<Metric[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
-      await Promise.all([getFines(), getActivities()]);
+      await Promise.all([getFines(1, 100), getActivities()]);
     };
 
     loadData();
@@ -83,7 +83,7 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     if (fines.length > 0) {
-      const totalFines = fines.length;
+      const totalFines = pagination.totalItems || fines.length;
       const pendingFines = fines.filter(f => getFineStatusLabel(f.currentState) === 'Pendiente').length;
       const paidFines = fines.filter(f => getFineStatusLabel(f.currentState) === 'Pagada').length;
       // const appealedFines = fines.filter(f => f.currentState === 'appealed').length;
@@ -119,7 +119,7 @@ const DashboardPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await Promise.all([getFines(), getActivities()]);
+    await Promise.all([getFines(1, 100), getActivities()]);
     setIsRefreshing(false);
   };
 

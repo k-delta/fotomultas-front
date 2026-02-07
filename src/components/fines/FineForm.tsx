@@ -18,11 +18,23 @@ interface FineFormProps {
   isLoading: boolean;
 }
 
+const FINE_COSTS: Record<FineType, number> = {
+  EXCESO_VELOCIDAD: 487_350,
+  SEMAFORO_ROJO: 974_700,
+  ESTACIONAMIENTO_PROHIBIDO: 243_675,
+  CONDUCIR_EMBRIAGADO: 1_949_400,
+  NO_RESPETAR_PASO_PEATONAL: 487_350,
+  USO_CELULAR: 487_350,
+  NO_USAR_CINTURON: 243_675,
+  CONDUCIR_SIN_LICENCIA: 974_700,
+  OTRO: 243_675,
+};
+
 const initialFormData: FineFormData = {
   plateNumber: '',
   location: '',
   infractionType: 'EXCESO_VELOCIDAD',
-  cost: 0,
+  cost: FINE_COSTS['EXCESO_VELOCIDAD'],
   ownerIdentifier: '',
   evidenceFile: null
 };
@@ -34,11 +46,19 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'cost' ? parseInt(value) || 0 : value
-    }));
+
+    if (name === 'infractionType') {
+      setFormData(prev => ({
+        ...prev,
+        infractionType: value as FineType,
+        cost: FINE_COSTS[value as FineType]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
   
   const handleEvidenceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,7 +128,7 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
             value={formData.infractionType}
             onChange={handleChange}
           >
-            {['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'SOAT_VENCIDO', 'TECNOMECANICA_VENCIDA', 'OTRO'].map(type => (
+            {['EXCESO_VELOCIDAD', 'SEMAFORO_ROJO', 'ESTACIONAMIENTO_PROHIBIDO', 'CONDUCIR_EMBRIAGADO', 'NO_RESPETAR_PASO_PEATONAL', 'USO_CELULAR', 'NO_USAR_CINTURON', 'CONDUCIR_SIN_LICENCIA', 'OTRO'].map(type => (
               <option key={type} value={type}>
                 {getFineTypeLabel(type as FineType)}
               </option>
@@ -117,19 +137,12 @@ const FineForm: React.FC<FineFormProps> = ({ onSubmit, isLoading }) => {
         </div>
         
         <div>
-          <label htmlFor="cost" className="block text-sm font-medium text-gray-700">
-            Monto (COP) *
+          <label className="block text-sm font-medium text-gray-700">
+            Monto (COP)
           </label>
-          <input
-            type="number"
-            name="cost"
-            id="cost"
-            min="0"
-            required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-            value={formData.cost}
-            onChange={handleChange}
-          />
+          <p className="mt-1 block w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            $ {formData.cost.toLocaleString('es-CO')}
+          </p>
         </div>
         
         <div>

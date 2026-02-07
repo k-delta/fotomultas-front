@@ -15,7 +15,7 @@ const FineCreatePage: React.FC = () => {
       // Send Fine to Backend
       const form = new FormData();
       Object.keys(formData).forEach(key => {
-        if (key === 'evidence') {
+        if (key === 'evidenceFile') {
           if (formData[key]) {
             form.append('evidence', formData[key]);
           }
@@ -23,6 +23,9 @@ const FineCreatePage: React.FC = () => {
           form.append(key, formData[key]);
         }
       });
+      if (!form.has('registeredBy')) {
+        form.append('registeredBy', 'Admin Usuario');
+      }
 
       const response = await fetch(`${API_URL}/api/fines`, {
         method: 'POST',
@@ -35,9 +38,10 @@ const FineCreatePage: React.FC = () => {
 
       const newFine = await response.json();
       console.log(newFine)
-      
+
       // Redirect to the new fine details page
-      navigate(`/fines/${newFine.fineId}`);
+      const fineId = newFine.data?.fineId || newFine.fineId;
+      navigate(`/fines/${fineId}`);
     } catch (error) {
       console.error('Error creating fine:', error);
     } finally {
