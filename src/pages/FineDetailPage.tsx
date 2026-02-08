@@ -172,28 +172,36 @@ const FineDetailPage: React.FC = () => {
             </div>
           </Card>
           
-          <Card title="Evidencia" className="overflow-hidden">
-            <div className="flex items-center justify-center border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
-              <div className="text-center">
-                <div className="mx-auto h-12 w-12 text-gray-400">
-                  <Image size={48} />
-                </div>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Evidencia en IPFS</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  CID: {selectedFine.evidenceCID.substring(0, 20)}...
-                </p>
-                <div className="mt-4">
-                  <a 
-                    href={`${API_URL}/api/fines/${selectedFine.evidenceCID}/evidence`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <ExternalLink size={16} className="mr-2" />
-                    Ver en IPFS
-                  </a>
-                </div>
+          <Card title="Evidencia fotográfica" className="overflow-hidden">
+            <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
+              <img
+                src={`${API_URL}/api/fines/evidence/${selectedFine.evidenceCID}`}
+                alt={`Evidencia de multa ${selectedFine.id}`}
+                className="w-full h-auto max-h-96 object-contain"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden flex-col items-center justify-center py-8">
+                <Image size={48} className="text-gray-400" />
+                <p className="mt-2 text-sm text-gray-500">No se pudo cargar la imagen</p>
               </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-xs text-gray-500 font-mono truncate">
+                CID: {selectedFine.evidenceCID}
+              </p>
+              <a
+                href={`${API_URL}/api/fines/evidence/${selectedFine.evidenceCID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 ml-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+              >
+                <ExternalLink size={14} className="mr-1" />
+                Abrir
+              </a>
             </div>
           </Card>
           

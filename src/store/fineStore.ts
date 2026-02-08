@@ -342,7 +342,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
   verifyFineIntegrity: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`${API_URL}/fines/${id}/integrity`, {
+      const response = await fetch(`${API_URL}/api/fines/${id}/integrity`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -355,7 +355,7 @@ export const useFineStore = create<FineStore>((set, get) => ({
 
       const data = await response.json();
       return {
-        blockchain: data.isIntegrityValid
+        blockchain: data.success
       };
     } catch (error) {
       console.error('Error verifying fine integrity:', error);
