@@ -382,8 +382,14 @@ export const useFineStore = create<FineStore>((set, get) => ({
       }
 
       const data = await response.json();
-      // Asegurarnos de que la respuesta sea un array
-      return Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
+      const raw = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
+      // Mapear campos del backend (status) al tipo del frontend (currentState)
+      return raw.map((entry: any) => ({
+        currentState: entry.currentState ?? entry.status ?? entry.newState ?? 0,
+        timestamp: entry.timestamp,
+        reason: entry.reason,
+        transactionId: entry.transactionId || entry.transactionHash || '',
+      }));
     } catch (error) {
       console.error('Error fetching status history:', error);
       return []; // En caso de error, devolver un array vacío
